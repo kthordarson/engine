@@ -2,7 +2,7 @@
 
 *A Tiny Game Engine Made with Python*
 
-**pyxora** is a lightweight abstraction over libraries like `pygame` and others. It's designed to serve as a simple, open-source game engine for building 2D games.
+**pyxora** is a lightweight abstraction over libraries like [pygame-ce](https://github.com/pygame-community/pygame-ce) and others. It's designed to serve as a simple, open-source game engine for building 2D games.
 
 > **Note:** The project is still in early development. It is not recommended for complex project/games at this stage.
 ---
@@ -33,7 +33,7 @@ The documentation is built using [pdoc](https://github.com/mitmproxy/pdoc).
 It provides an overview of the engine modules and how they work.
 
 It is recommended to read the documentation at least once to understand the engine’s structure and usage.\
-📄 [View Documentation](#)
+📄 [View Documentation](https://tonidevstuff.github.io/pyxora/pyxora.html)
 
 ### 🧪 Examples
 
@@ -41,7 +41,7 @@ Check the [examples](pyxora/examples) folder for some examples with a syntax sho
 Currently, only a basic test example is included:
 
 ```bash
-python3 -m pyxora.examples.test
+python -m pyxora.examples.test
 ```
 
 ---
@@ -69,10 +69,8 @@ It's open-source and designed to be easy to explore and experiment with.
 
 ### 🚧 Cross-Platform
 
-The engine is available for use on **Windows**, **Linux**, and **macOS**, with export support for these platforms and **Web**.\
-In the future, there may be support for **Android**.
-
-**Note:** Currently, the author doesn't have a Mac device to test on, so macOS support is not yet confirmed.
+The engine is available for use on **Windows** and **Linux**, with build support (not yet) for these platforms and **Web**.\
+In the future, there may be support for **Android** and **Mac**.
 
 ### 📦 Will It Be On PyPI?
 
