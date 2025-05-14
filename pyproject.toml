@@ -1,0 +1,28 @@
+[project]
+name = "pyxora"
+version = "0.1.0"
+authors = [
+  { name="ToniDevStuff", email="antonisdevstuff@gmail.com" },
+]
+description = "A simple game engine made with Python and pygame-ce"
+keywords = ["engine","game engine","2d game engine","game development"]
+readme = "README.md"
+requires-python = "~=3.11"
+dependencies = [
+  "pygame-ce == 2.5.3"
+]
+license = "MIT"
+license-files = ["LICENCE.txt"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Operating System :: Microsoft:: Windows",
+    "Operating System :: POSIX:: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries :: pygame"
+]
+
+[project.urls]
+Homepage = "https://github.com/ToniDevStuff/pyxora"
+
+[tool.setuptools]
+packages = ["pyxora"]
