@@ -7,8 +7,8 @@ pygame = pyxora.pygame
     
 class Test(pyxora.Scene):
     def _on_create(self):
-        self.rect = pyxora.Rect(self.Display.center,(200,200),"black")
-        self.circle = pyxora.Circle(self.Display.center,100,"red")
+        self.rect = pyxora.Rect(self.Display.get_center(),(200,200),"black")
+        self.circle = pyxora.Circle(self.Display.get_center(),100,"red")
         self.circle2 = pyxora.Circle((0,0),200,"blue")
 
         ms = round(self.get_delay() * 1000)
@@ -32,9 +32,14 @@ class Test(pyxora.Scene):
     def _on_paused_keydown(self,key):
         key == "p" and self.Manager.resume()
 
-    @pyxora.utils.event_listener("print_delay")
     def _on_keypressed(self,keys):
-        print(f"[INPUT] keys{keys}")
+        speed = 100
+        "a" in keys and self.circle.move((-speed*self.dt,0))
+        "d" in keys and self.circle.move((speed*self.dt,0))
+        "w" in keys and self.circle.move((0,-speed*self.dt))
+        "s" in keys and self.circle.move((0,speed*self.dt))
+
+        self.is_custom_event("print_delay") and print(f"[INPUT] keys{keys}")
 
     @pyxora.utils.event_listener("print_delay")
     def _on_paused_keypressed(self,keys):
@@ -46,6 +51,7 @@ class Test(pyxora.Scene):
 
     def _update(self):
         self.print_performance()
+        self.rect.move((10*self.dt,0))
 
     def _paused_update(self):
         self.print_hello()
@@ -62,7 +68,7 @@ class Test(pyxora.Scene):
 
     @pyxora.utils.event_listener("performance")
     def print_performance(self):
-        print(f"[EVENT] fps: {round(self.fps)} , dt: {self.dt}")
+        print(f"[EVENT] runtime: {int(self.runtime)}s, fps: {round(self.fps)}, dt: {self.dt}")
 
     def get_delay(self):
         return time() - self._global_start_time

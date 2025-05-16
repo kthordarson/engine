@@ -8,19 +8,8 @@ import pygame
 
 class SceneManager:
     """The Main Manager of the Scenes."""
-    _scene: tuple[str, "Scene"] = (None, None)
-
-    # Note: The classmethod-properties need to be change as they are not going to work for python>=3.13
-    # Maybe get_property() is going to be the best replacement.
-    # Keeping it this way for now, as i like them. :(
-
-    # Link: https://docs.python.org/3.13/library/functions.html#classmethod
-
-    @classmethod
-    @property
-    def scene(cls) -> tuple[str,"Scene"]:
-        """The current scene (name and scene object)."""
-        return cls._scene
+    scene: tuple[str, "Scene"] = (None, None)
+    """The current scene (name and scene object)."""
 
     # --- Scene Control ---
     @classmethod
@@ -69,7 +58,7 @@ class SceneManager:
         cls._set_scene(scene_name, scene_instance)
 
     @classmethod
-    def _exit(cls) -> None:
+    def __exit(cls) -> None:
         """Exit the current scene."""
         scene_obj = cls.scene[1]
         if scene_obj:
@@ -84,7 +73,7 @@ class SceneManager:
         Args:
             name (str): The name of the scene to switch to.
         """
-        cls._exit()
+        cls.__exit()
         cls.create(name)
 
     @classmethod
@@ -92,7 +81,7 @@ class SceneManager:
         """
         Restart the current scene.
         """
-        cls._exit()
+        cls.__exit()
         scene_name = cls.scene[0]
         if scene_obj:
             cls.create(scene_name)
@@ -106,7 +95,7 @@ class SceneManager:
         if not scene_name:
             return
 
-        cls._exit()
+        cls.__exit()
         cls.change_to(scene_name)
 
     '''
@@ -148,7 +137,7 @@ class SceneManager:
         Returns:
             Tuple[str, Scene]: A tuple containing the scene name and the scene instance.
         """
-        cls._scene = (name, scene)
+        cls.scene = (name, scene)
 
 class SceneEvent:
     """

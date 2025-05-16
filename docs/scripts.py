@@ -10,7 +10,7 @@ def run():
 
 def build():
     import os
-    output = os.path.abspath(input("path: ")+"/build")
+    output = os.path.abspath(input("output-path: ")+"/build")
     argv.append("-o")
     argv.append(output)
     subprocess.run(argv)

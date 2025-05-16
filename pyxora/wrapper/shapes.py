@@ -1,29 +1,41 @@
 from .others import vector
 from abc import ABC, abstractmethod
 from math import ceil
-from typing import Iterable
+from typing import Tuple
 import pygame
 
 class Shape(ABC):
     """Abstract base class for all drawable shapes."""
     
-    def __init__(self, pos: Iterable[int | float] | pygame.math.Vector2 | pygame.math.Vector3, color: str | tuple):
+    def __init__(self, pos: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3, color: str | tuple):
         """
         Initializes the shape with a position and color.
         
         Args:
-            pos (list | tuple | pygame.math.Vector2 | pygame.math.Vector3): The position of the shape.
+            pos (pos: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3): The position of the shape.
             color (str | tuple): The color of the shape, either as a string (e.g., "red") or a tuple (R, G, B).
         """
-        self.pos = vector(*pos)
-        """ The position of the shape"""
-        self.color = color
-        """ The color of the shape"""
+        self._pos = vector(*pos)
+        self._color = color
 
     @property
+    def pos(self) -> pygame.math.Vector2 | pygame.math.Vector3:
+        """property to get the position of the shape."""
+        return self._pos
+
+    @property
+    def color(self) -> str | Tuple[int,int,int]:
+        """property to get the color of the shape."""
+        return self._color
+
     @abstractmethod
-    def rect(self) -> pygame.Rect | pygame.FRect:
-        """Abstract method to get the bounding rectangle of the shape."""
+    def get_rect(self) -> pygame.Rect | pygame.FRect:
+        """
+        Returns the bounding rectangle (pygame.Rect or pygame.FRect) based on coordinate types.
+        
+        Returns:
+            pygame.Rect | pygame.FRect: The bounding rectangle of the shape.
+        """
         pass
 
     @abstractmethod
@@ -38,34 +50,64 @@ class Shape(ABC):
         """
         pass
 
+    def move(self,pos: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3) -> None:
+        """
+        Moves the shape by the given offset.
+
+        Args:
+            pos (Tuple[int | float, int | float] | Vector2 | Vector3): 
+                The amount to move the shape by, relative to its current position.
+        """
+        self._pos.x += pos[0]
+        self._pos.y += pos[1]
+
+    def move_at(self,pos: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3) -> None:
+        """
+        Moves the shape to a position.
+
+        Args:
+            pos (Tuple[int | float, int | float] | Vector2 | Vector3): 
+                The new position for the shape.
+        """
+        self._pos.x = pos[0]
+        self._pos.y = pos[1]
+
 
 class Rect(Shape):
     """Represents a rectangle shape."""
     
-    def __init__(self, pos: Iterable[int | float] | pygame.math.Vector2 | pygame.math.Vector3, size: tuple | list, color: str | tuple):
+    def __init__(
+            self, 
+            pos: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3, 
+            size: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3,
+            color: str | tuple
+    ):
         """
         Initializes the rectangle with position, size, and color.
         
         Args:
-            pos (pygame.math.Vector2 | pygame.math.Vector3): The position of the rectangle.
-            size (tuple | list): The size of the rectangle, either as a tuple or list (width, height).
+            pos (tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3): The position of the rectangle.
+            size (tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3): The size of the rectangle (width, height).
             color (str | tuple): The color of the rectangle, either as a string (e.g., "red") or a tuple (R, G, B).
         """
         super().__init__(pos, color)
-        self.size = size
-        """ The size of the Rect"""
+        self._size = tuple(size)
 
     @property
-    def rect(self) -> pygame.Rect | pygame.FRect:
+    def size(self) -> Tuple[int | float, int | float]:
+        """ The size of the Rect"""
+        return self._size
+
+    def get_rect(self) -> pygame.Rect | pygame.FRect:
         """
         Returns the bounding rectangle (pygame.Rect or pygame.FRect) based on coordinate types.
         
         Returns:
             pygame.Rect | pygame.FRect: The bounding rectangle of the shape.
         """
-        if all(isinstance(i, int) for i in (self.pos[0], self.pos[1], self.size[0], self.size[1])):
-            return pygame.Rect(self.pos, self.size)  # Use pygame.Rect if all values are integers
-        return pygame.FRect(self.pos, self.size)  # Use pygame.FRect otherwise
+        if all(isinstance(i, int) for i in (self._pos[0], self._pos[1], self._size[0], self._size[1])):
+            return pygame.Rect(self._pos, self._size)  # Use pygame.Rect if all values are integers
+        return pygame.FRect(self._pos, self._size)  # Use pygame.FRect otherwise
 
     def draw(self, surf: pygame.Surface, fill: int, scale: int | float) -> None:
         """
@@ -77,34 +119,38 @@ class Rect(Shape):
             scale (int | float): The scale factor for the rectangle size.
         """
         # Scale the rectangle and fill value
-        rect = self.rect
+        rect = self.get_rect()
+        color = self.color
         fill *= scale
         rect.width *= scale
         rect.height *= scale
         fill = ceil(fill)  # Ensure fill is an integer
         
         # Draw the rectangle
-        pygame.draw.rect(surf, self.color, rect, width=fill if fill > 0 else 0)
+        pygame.draw.rect(surf, color, rect, width=fill if fill > 0 else 0)
 
 
 class Circle(Shape):
     """Represents a circle shape."""
     
-    def __init__(self, pos: Iterable[int | float] | pygame.math.Vector2 | pygame.math.Vector3, radius: int | float, color: str | tuple):
+    def __init__(self, pos: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3, radius: int | float, color: str | tuple):
         """
         Initializes the circle with position, radius, and color.
         
         Args:
-            pos (pygame.math.Vector2 | pygame.math.Vector3): The position of the circle.
+            pos: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3,
             radius (int | float): The radius of the circle.
             color (str | tuple): The color of the circle, either as a string (e.g., "red") or a tuple (R, G, B).
         """
         super().__init__(pos, color)
-        self.radius = radius
-        """ The radius of the Circle"""
+        self._radius = radius
 
     @property
-    def rect(self) -> pygame.Rect:
+    def radius(self) -> int | float:
+        """ The radius of the Circle"""
+        return self._radius
+
+    def get_rect(self) -> pygame.Rect:
         """
         Returns the bounding rectangle for the circle.
         

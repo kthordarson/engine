@@ -1,6 +1,6 @@
 # pyxora
 
-*A Tiny Game Engine Made with Python*
+*A simple game engine made with Python and pygame-ce*
 
 **pyxora** is a lightweight abstraction over libraries like [pygame-ce](https://github.com/pygame-community/pygame-ce) and others. It's designed to serve as a simple, open-source game engine for building 2D games.
 
@@ -13,7 +13,7 @@
 
 There is no official build or package on PyPI yet. To use **pyxora**, you must install it from the source.
 
-1. Install Python 3.11
+1. Install Python 3.11+
 2. Download the source files from the [Releases](https://github.com/ToniDevStuff/pyxora/releases) page  
 3. Open your terminal at the source directory  
 4. Run:
@@ -33,7 +33,7 @@ The documentation is built using [pdoc](https://github.com/mitmproxy/pdoc).
 It provides an overview of the engine modules and how they work.
 
 It is recommended to read the documentation at least once to understand the engine’s structure and usage.\
-📄 [View Documentation](https://tonidevstuff.github.io/pyxora/pyxora.html)
+📄 [View Documentation](https://tonidevstuff.github.io/pyxora/docs/pyxora.html)
 
 ### 🧪 Examples
 

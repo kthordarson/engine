@@ -1,3 +1,4 @@
+from typing import Tuple
 import pygame
 
 class Display:
@@ -5,23 +6,27 @@ class Display:
 
     window = None
     """The main display window"""
+    surf = None
+    """The min display surface"""
+    clock = None
+    """The main display clock"""
 
     @classmethod
-    def init(cls, title: str, resolution:tuple[int, int] , stretch=False,
+    def init(cls, title: str, resolution:Tuple[int, int] , stretch=False,
              fullscreen=False, resizable=False, vsync=False) -> None:
         """
         Initializes the main display window used by all scenes.
 
         Args:
             title (str): The title of the window.
-            resolution (tuple[int, int]): The resolution of the window (width, height).
+            resolution (Tuple[int, int]): The resolution of the window (width, height).
             stretch (bool): Whether to stretch the internal surface to fit the screen. Defaults to False.
             fullscreen (bool): Start in fullscreen mode. Defaults to False.
             resizable (bool): Allows the window to be resizable. Defaults to False.
             vsync (bool): Enables vertical sync. Defaults to False.
         """
         cls._title = title
-        cls._res = resolution
+        cls._res = tuple(resolution) # make sure it's tuple, no need to raise an error
         cls._width, cls._height = resolution
 
         cls._vsync = vsync
@@ -33,37 +38,46 @@ class Display:
         # cls._dynamic_zoom = dynamic_zoom
 
         cls._new_res = None
-        cls._last_res = resolution # We also keep last_res so we know what resolution to revert to if needed.
+        cls._last_res = resolution
 
-        cls._surf = pygame.Surface(resolution)
-        cls._clock = pygame.time.Clock()
+        cls.clock = pygame.time.Clock()
+        cls.surf = pygame.Surface(resolution)
 
         cls.__set_title()
         cls.__set_mode()
 
-    # Note: The classmethod-properties need to be change as they are not going to work for python>=3.13
-    # Maybe get_property() is going to be the best replacement.
-    # Keeping it this way for now, as i like them. :(
+    @classmethod
+    def get_res(cls) -> Tuple[float, float]:
+        """
+        Get the base resolution.
 
-    # Link: https://docs.python.org/3.13/library/functions.html#classmethod
+        Returns:
+            Tuple[float, float]: The main (base) resolution of the window.
+        """
+        return cls._res
 
     @classmethod
-    @property
-    def surf(cls) -> pygame.Surface:
-        """pygame.Surface: The main rendering surface."""
-        return cls._surf
+    def get_center(cls) -> Tuple[float, float]:
+        """
+        Get the center point of the base resolution.
 
-    @classmethod
-    @property
-    def clock(cls) -> pygame.time.Clock:
-        """pygame.time.Clock: The main clock."""
-        return cls._clock
-
-    @classmethod
-    @property
-    def center(cls) -> tuple:
-        """center: tuple[float, float]"""
+        Returns:
+            Tuple[float, float]: The (x, y) center coordinates of the base resolution.
+        """
         return (cls._res[0] / 2, cls._res[1] / 2)
+
+    @classmethod
+    def get_size(cls) -> Tuple[float, float]:
+        """
+        Get the possibly scaled resolution.
+
+        If a new resolution is set, it returns that.
+        Otherwise, it returns the base resolution.
+
+        Returns:
+            Tuple[float, float]: The size of the window.
+        """
+        return cls._res if not cls.is_resized() else cls._new_res
 
     @classmethod
     def is_resized(cls) -> bool:
@@ -74,6 +88,16 @@ class Display:
             bool: True if a new resolution has been set, otherwise False.
         """
         return bool(cls._new_res)
+
+    @classmethod
+    def is_fullscreen(cls) -> bool:
+        """
+        Check if the display has been resized.
+
+        Returns:
+            bool: True if a new resolution has been set, otherwise False.
+        """
+        return cls._fullscreen
 
     @classmethod
     def resize(cls, new_res) -> None:
@@ -96,15 +120,14 @@ class Display:
         Returns:
             pygame.Surface: The scaled surface.
         """
-        return pygame.transform.scale(cls._surf, cls._new_res)
+        return pygame.transform.scale(cls.surf, cls._new_res)
 
     @classmethod
     def toggle_fullscreen(cls) -> None:
         """Toggle fullscreen mode on or off."""
         cls._fullscreen = not cls._fullscreen
-        cls._fullscreen and pygame.display.toggle_fullscreen()
-
-        not cls._fullscreen and cls.resize(cls._last_res) # If we're exiting fullscreen, we need to resize back to the previous resolution.
+        
+        cls.__set_mode() if cls._fullscreen else cls.resize(cls._last_res)
 
     @classmethod
     def draw_shape(cls, Shape, fill=0) -> None:
@@ -148,19 +171,22 @@ class Display:
     @classmethod
     def __set_mode(cls) -> None:
         """Private method to set the display mode based on flags and resolution."""
-        res = cls._res if not cls._new_res else cls._new_res
+        window_res = cls.get_size()
         vsync = int(cls._vsync)
 
         # apply the flags
         flags = 0
-        if cls._resizable:
-            flags |= pygame.RESIZABLE 
         if cls._fullscreen:
             flags |= pygame.FULLSCREEN 
             flags |= pygame.HWSURFACE
+            flags |= pygame.SCALED
 
-        cls.window = pygame.display.set_mode(res, flags=flags, vsync=vsync)
+        if cls._resizable:
+            flags |= pygame.RESIZABLE 
+
+        cls.window = pygame.display.set_mode(window_res, flags=flags, vsync=vsync)
 
     @classmethod
     def __set_title(cls):
+        """Private method to set the window title."""
         pygame.display.set_caption(cls._title)
