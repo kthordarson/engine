@@ -7,7 +7,7 @@ A simple game engine made with Python and pygame-ce.
 """
 
 __project__ = "pyxora"
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __author__ = "ToniDevStuff"
 
 __docformat__ = "google"
