@@ -20,7 +20,7 @@ class SceneManager:
         scene_object = cls.scene[1]
         if not scene_object:
             raise Exception("No scene selected")
-        
+
         # Main game loop
         while True:
             await scene_object.run()
@@ -32,7 +32,7 @@ class SceneManager:
         scene_object = scenes.get(name, None)
         if not scene_object:
             engine.error(RuntimeError(f"Scene: {name}, not found in Assets/scenes"))
-            engine.quit() 
+            engine.quit()
 
         scene_class = getattr(scene_object, name.capitalize(), None)
         if not scene_class:
@@ -260,7 +260,7 @@ class SceneEvent:
     def update(self,state: int):
         """
         @private
-        
+
         (Not include in the doc as it should be call only inside scene itself)
         Updates all the custom events and it's properties at the scene state.
 
@@ -353,15 +353,15 @@ class Scene:
     """ Display: Reference to the scene's display handler (pyxora.Display)."""
 
     global_runtime = 0
-    """ global_pausetime: The global runtime for all the scenes."""    
+    """ global_pausetime: The global runtime for all the scenes."""
     global_pausetime = 0
-    """ global_runtime: The global pause time for all the scenes."""    
+    """ global_runtime: The global pause time for all the scenes."""
     _global_start_time = time()
 
     def __init__(self,**kwargs: Any) -> None:
         """
         Initializes a Scene object.
-        
+
         Args:
             **kwargs: Additional arguments passed to the scene. Can be any extra data needed for the scene.
 
@@ -410,7 +410,7 @@ class Scene:
         """@public Called every paused frame to update scene logic. Override this func in your subclass."""
         pass
     def _paused_draw(self) -> None:
-        """@public Called every paused frame to draw elements to the screen. Override this func in your subclass."""        
+        """@public Called every paused frame to draw elements to the screen. Override this func in your subclass."""
         pass
 
     # Scene State Change Methods
@@ -590,7 +590,7 @@ class Scene:
 
     def is_custom_event(self,event_name):
         """Checks if a custom event is happening during the frame. """
-        return event_name in self.custom_events    
+        return event_name in self.custom_events
 
     def is_paused(self):
         """Returns if the scene is paused."""
@@ -615,7 +615,7 @@ class Scene:
             }
 
             # set manual the scene kwargs to the scene
-            for k, v in kwargs.items(): 
+            for k, v in kwargs.items():
                 setattr(self, k, v)
             self._on_create()
         except Exception as e:
@@ -711,7 +711,7 @@ class Scene:
 
     # no point to update the fps every frame as is hard to tell with the eye
     # maybe i should change it to average instead?
-    def __update_fps(self): 
+    def __update_fps(self):
         """Updates the current scene fps every 250ms."""
         if self.is_time(250):
             self.fps = self.Display.clock.get_fps()

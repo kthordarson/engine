@@ -1,5 +1,13 @@
 from typing import Tuple
+from os import path
 import pygame
+
+# there is no asset manager yet
+def get_engine_icon():
+    base = path.dirname(__file__)
+    icon_path = path.normpath(base+"/images/icon.png")
+    icon = pygame.image.load(icon_path)
+    return icon
 
 class Display:
     """Handles the main game display surface and rendering."""
@@ -43,8 +51,21 @@ class Display:
         cls.clock = pygame.time.Clock()
         cls.surf = pygame.Surface(resolution)
 
-        cls.__set_title()
+        icon = get_engine_icon()
+        cls.set_title(title)
+        cls.set_icon(icon)
+
         cls.__set_mode()
+
+    @classmethod
+    def set_title(cls,title: str) -> None:
+        """Class method to set the window title."""
+        pygame.display.set_caption(title)
+
+    @classmethod
+    def set_icon(cls,icon: pygame.Surface) -> None:
+        """Class method to set the window icon."""
+        pygame.display.set_icon(icon)
 
     @classmethod
     def get_res(cls) -> Tuple[float, float]:
@@ -126,7 +147,7 @@ class Display:
     def toggle_fullscreen(cls) -> None:
         """Toggle fullscreen mode on or off."""
         cls._fullscreen = not cls._fullscreen
-        
+
         cls.__set_mode() if cls._fullscreen else cls.resize(cls._last_res)
 
     @classmethod
@@ -177,16 +198,11 @@ class Display:
         # apply the flags
         flags = 0
         if cls._fullscreen:
-            flags |= pygame.FULLSCREEN 
+            flags |= pygame.FULLSCREEN
             flags |= pygame.HWSURFACE
             flags |= pygame.SCALED
 
         if cls._resizable:
-            flags |= pygame.RESIZABLE 
+            flags |= pygame.RESIZABLE
 
         cls.window = pygame.display.set_mode(window_res, flags=flags, vsync=vsync)
-
-    @classmethod
-    def __set_title(cls):
-        """Private method to set the window title."""
-        pygame.display.set_caption(cls._title)

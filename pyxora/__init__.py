@@ -44,7 +44,6 @@ from .utils import asyncio,engine
 from .display import Display
 from .scene import Scene
 
-
 version: str = __version__
 """pyxora Version"""
 python_version: str = f"{_python_version[0]}.{_python_version[1]}.{_python_version[2]}"
