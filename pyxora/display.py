@@ -20,7 +20,7 @@ class Display:
     """The main display clock"""
 
     @classmethod
-    def init(cls, title: str, resolution:Tuple[int, int] , stretch=False,
+    def init(cls, title: str, resolution:Tuple[int, int] ,monitor=0, stretch=False,
              fullscreen=False, resizable=False, vsync=False) -> None:
         """
         Initializes the main display window used by all scenes.
@@ -46,14 +46,15 @@ class Display:
         # cls._dynamic_zoom = dynamic_zoom
 
         cls._new_res = None
-        cls._last_res = resolution
+        cls._icon = None
+        cls._index = monitor
 
         cls.clock = pygame.time.Clock()
         cls.surf = pygame.Surface(resolution)
 
-        icon = get_engine_icon()
+        engine_icon = get_engine_icon()
         cls.set_title(title)
-        cls.set_icon(icon)
+        cls.set_icon(engine_icon)
 
         cls.__set_mode()
 
@@ -65,7 +66,18 @@ class Display:
     @classmethod
     def set_icon(cls,icon: pygame.Surface) -> None:
         """Class method to set the window icon."""
+        cls._icon = icon
         pygame.display.set_icon(icon)
+
+    @classmethod
+    def change_res(cls, res: Tuple[float, float]) -> None:
+        """
+        Set the base resolution.
+
+        Args:
+            res (Tuple[float, float]): The new base resolution.
+        """
+        cls._new_res = res
 
     @classmethod
     def get_res(cls) -> Tuple[float, float]:
@@ -128,9 +140,7 @@ class Display:
         Args:
             new_res (tuple[int, int]): The new resolution.
         """
-        if not cls._fullscreen:
-            cls._last_res = new_res
-        cls._new_res = new_res
+        cls.change_res(new_res)
         cls.__set_mode()
 
     @classmethod
@@ -147,8 +157,9 @@ class Display:
     def toggle_fullscreen(cls) -> None:
         """Toggle fullscreen mode on or off."""
         cls._fullscreen = not cls._fullscreen
-
-        cls.__set_mode() if cls._fullscreen else cls.resize(cls._last_res)
+        pygame.display.toggle_fullscreen()
+        cls.set_icon(cls._icon) # re-set icon for the new display mode
+        cls.change_res(pygame.display.get_desktop_sizes()[cls._index])
 
     @classmethod
     def draw_shape(cls, Shape, fill=0) -> None:
@@ -194,15 +205,17 @@ class Display:
         """Private method to set the display mode based on flags and resolution."""
         window_res = cls.get_size()
         vsync = int(cls._vsync)
+        display = cls._index
 
         # apply the flags
         flags = 0
+
         if cls._fullscreen:
             flags |= pygame.FULLSCREEN
             flags |= pygame.HWSURFACE
             flags |= pygame.SCALED
 
-        if cls._resizable:
+        if cls._resizable and not cls._fullscreen:
             flags |= pygame.RESIZABLE
 
-        cls.window = pygame.display.set_mode(window_res, flags=flags, vsync=vsync)
+        cls.window = pygame.display.set_mode(window_res, flags=flags, vsync=vsync,display=display)
