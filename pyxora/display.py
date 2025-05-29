@@ -70,12 +70,13 @@ class Display:
         pygame.display.set_icon(icon)
 
     @classmethod
-    def change_res(cls, res: Tuple[float, float]) -> None:
+    def set_res(cls, res: Tuple[float, float]) -> None:
         """
-        Set the base resolution.
+        Set a new resolution (without re-sizing the window)
+        If you want to re-size the window, use the `resize` method instead.
 
         Args:
-            res (Tuple[float, float]): The new base resolution.
+            res (Tuple[float, float]): The new resolution.
         """
         cls._new_res = res
 
@@ -140,7 +141,7 @@ class Display:
         Args:
             new_res (tuple[int, int]): The new resolution.
         """
-        cls.change_res(new_res)
+        cls.set_res(new_res)
         cls.__set_mode()
 
     @classmethod
@@ -159,7 +160,7 @@ class Display:
         cls._fullscreen = not cls._fullscreen
         pygame.display.toggle_fullscreen()
         cls.set_icon(cls._icon) # re-set icon for the new display mode
-        cls.change_res(pygame.display.get_desktop_sizes()[cls._index])
+        cls.set_res(pygame.display.get_desktop_sizes()[cls._index])
 
     @classmethod
     def draw_shape(cls, Shape, fill=0) -> None:

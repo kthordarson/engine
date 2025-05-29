@@ -674,7 +674,7 @@ class Scene:
                 on_wheel(wheel)
 
             elif event.type == pygame.VIDEORESIZE:
-                self.Display.change_res((event.w, event.h))
+                self.Display.set_res((event.w, event.h))
                 # self.Camera.dynamic_zoom()
             on_event(event)
 
