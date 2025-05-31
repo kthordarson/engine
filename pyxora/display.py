@@ -1,13 +1,9 @@
+from .assets import Assets
+
 from typing import Tuple
 from os import path
-import pygame
 
-# there is no asset manager yet
-def get_engine_icon():
-    base = path.dirname(__file__)
-    icon_path = path.normpath(base+"/images/icon.png")
-    icon = pygame.image.load(icon_path)
-    return icon
+import pygame
 
 class Display:
     """Handles the main game display surface and rendering."""
@@ -52,9 +48,7 @@ class Display:
         cls.clock = pygame.time.Clock()
         cls.surf = pygame.Surface(resolution)
 
-        engine_icon = get_engine_icon()
         cls.set_title(title)
-        cls.set_icon(engine_icon)
 
         cls.__set_mode()
 

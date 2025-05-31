@@ -7,7 +7,7 @@ A simple game engine made with Python and pygame-ce.
 """
 
 __project__ = "pyxora"
-__version__ = "0.1.3"
+__version__ = "0.2.0"
 __author__ = "ToniDevStuff"
 
 __docformat__ = "google"
@@ -38,16 +38,16 @@ from .wrapper import *
 from .utils import asyncio,engine
 
 # (Not ready)
-# from .assets import Assets
 # from .camera import Camera
 # from .object import Object,ObjectScript,Objects
+from .assets import Assets
 from .display import Display
 from .scene import Scene
 
 version: str = __version__
 """pyxora Version"""
 python_version: str = f"{_python_version[0]}.{_python_version[1]}.{_python_version[2]}"
-"""Python Version"""
+"""@private Python Version"""
 pygame_version: str = pygame.version.ver
 """pygame Version"""
 sdl_version: str = f"{pygame.version.SDL[0]}.{pygame.version.SDL[1]}.{pygame.version.SDL[2]}"

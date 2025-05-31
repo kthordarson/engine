@@ -1,5 +1,5 @@
-from . import Display,debug
-from .utils import python,engine,asyncio
+from . import Assets,Display,debug
+from .utils import engine,asyncio
 
 from time import perf_counter as time
 from typing import Any
@@ -19,52 +19,30 @@ class SceneManager:
         """
         scene_object = cls.scene[1]
         if not scene_object:
-            raise Exception("No scene selected")
+            engine.error(Exception("No scene selected"),debug)
+            engine.quit()
 
         # Main game loop
         while True:
             await scene_object.run()
             await asyncio.sleep(0)
-    '''
-    @classmethod
-    def create(cls, name: type, **kwargs: Any) -> None:
-        scenes = Assets.data.get("scenes")
-        scene_object = scenes.get(name, None)
-        if not scene_object:
-            engine.error(RuntimeError(f"Scene: {name}, not found in Assets/scenes"))
-            engine.quit()
-
-        scene_class = getattr(scene_object, name.capitalize(), None)
-        if not scene_class:
-            engine.error(RuntimeError(f"Scene: {name} has not class with name {name.capitalize()}"))
-            engine.quit()
-
-        scene_instance = scene_class(**kwargs)
-        cls._set_scene(name, scene_instance)
-    '''
 
     @classmethod
-    def create(cls, scene_class: type, **kwargs: Any) -> None:
+    def create(cls, name: str, **kwargs: Any) -> None:
         """
         Create a new scene instance.
 
         Args:
-            scene_class (type): The class of the scene.
+            scene_class (str): The class of the scene.
             kwargs: Additional arguments passed to the scene's constructor.
         """
+        scene = Assets.get("data","scenes",name)
+        if not scene:
+            engine.error(RuntimeError(f"Scene: {name}, not found in data/scenes folder"),debug)
+            engine.quit()
 
-        scene_instance = scene_class(**kwargs)
-        scene_name = scene_instance.__class__.__name__
-        cls._set_scene(scene_name, scene_instance)
+        cls._set_scene(name, scene(**kwargs))
 
-    @classmethod
-    def __exit(cls) -> None:
-        """Exit the current scene."""
-        scene_obj = cls.scene[1]
-        if scene_obj:
-            scene_obj.exit()
-
-    '''
     @classmethod
     def change_to(cls, name: str) -> None:
         """
@@ -82,23 +60,14 @@ class SceneManager:
         Restart the current scene.
         """
         cls.__exit()
-        scene_name = cls.scene[0]
-        if scene_obj:
-            cls.create(scene_name)
 
     @classmethod
     def reset(cls) -> None:
         """
         Reset the current scene by re-creating it.
         """
-        scene_name = cls.scene[0]
-        if not scene_name:
-            return
-
         cls.__exit()
-        cls.change_to(scene_name)
-
-    '''
+        cls.change_to(cls.scene[0])
 
     @classmethod
     def pause(cls) -> None:
@@ -106,15 +75,19 @@ class SceneManager:
         Pause the current scene.
         """
         scene_obj = cls.scene[1]
-        if scene_obj:
-            scene_obj.pause()
+        if not scene_obj:
+            engine.error(Exception("No scene found"),debug)
+            engine.quit()
+        scene_obj.pause()
 
     @classmethod
     def resume(cls) -> None:
         """Resumes the current scene."""
         scene_obj = cls.scene[1]
-        if scene_obj:
-            scene_obj.resume()
+        if not scene_obj:
+            engine.error(Exception("No scene found"),debug)
+            engine.quit()
+        scene_obj.resume()
 
     @classmethod
     def quit(cls) -> None:
@@ -122,8 +95,10 @@ class SceneManager:
         Quit the application through the current scene.
         """
         scene_obj = cls.scene[1]
-        if scene_obj:
-            scene_obj.quit()
+        if not scene_obj:
+            engine.error(Exception("No scene found"),debug)
+            engine.quit()
+        scene_obj.quit()
 
     @classmethod
     def _set_scene(cls, name: str, scene: "Scene") -> None:
@@ -138,6 +113,15 @@ class SceneManager:
             Tuple[str, Scene]: A tuple containing the scene name and the scene instance.
         """
         cls.scene = (name, scene)
+
+    @classmethod
+    def __exit(cls) -> None:
+        """Exit the current scene."""
+        if not scene_obj:
+            engine.error(Exception("No scene found"),debug)
+            engine.quit()
+        scene_obj = cls.scene[1]
+        scene_obj.exit()
 
 class SceneEvent:
     """
@@ -608,6 +592,10 @@ class Scene:
 
             self.__running = True
             self.__paused = False
+
+            Display.set_icon(
+                Assets.get("engine","images","icon")
+            )
 
             self.__event_handlers = {
                 True:  (self._on_paused_keydown, self._on_paused_keyup, self._on_paused_keypressed, self._on_paused_mousewheel, self._on_paused_event),

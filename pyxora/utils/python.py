@@ -3,7 +3,7 @@ import os.path as os_path
 from os import getcwd
 from sys import path as sys_path, modules
 
-__all__ = ["get_filename","get_filetype","load_module","get_class"]
+__all__ = ["get_filename","get_filetype","load_module","load_class"]
 
 import os
 import sys
@@ -54,7 +54,7 @@ def load_module(file_path: str) -> ModuleType:
         FileNotFoundError: If the file does not exist.
         ImportError: If the module fails to load.
     """
-    full_path = os.path.normpath(getcwd() + file_path)
+    full_path = os.path.normpath(os.path.join(os.getcwd(), file_path))
 
     if not os.path.exists(full_path):
         raise FileNotFoundError(f"Module file not found: {full_path}")
@@ -74,16 +74,17 @@ def load_module(file_path: str) -> ModuleType:
 
     return module
 
-
-def get_class(module, class_name: str) -> type:
+def load_class(file_path: str,name:str) -> type:
     """
-    Retrieve a class from a module by name.
+    Load a class from a path
 
     Args:
-        module (module): The module object to search.
-        class_name (str): The name of the class to retrieve.
+        file_path (str): The class path.
+        name (str): The name of the class to retrieve.
 
     Returns:
-        type | None: The class object if found, else None.
+        type: The loaded class object.
     """
-    return getattr(module, class_name, None)
+    module = load_module(file_path)
+    the_class = getattr(module, name, None)
+    return the_class
