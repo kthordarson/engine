@@ -169,8 +169,6 @@ class Display:
         # Just calls the abstracted shape.draw method, so we only need one method to draw any future shape :)
         Shape.draw(cls.surf, fill=fill, scale=1)
 
-    # not ready
-    '''
     @classmethod
     def draw_text(cls, Txt) -> None:
         """
@@ -181,6 +179,8 @@ class Display:
         """
         Txt.draw(cls.surf, scale=1)
 
+    # not ready
+    '''
     @classmethod
     def draw_image(cls, Image) -> None:
         """

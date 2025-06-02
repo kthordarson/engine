@@ -4,12 +4,14 @@ import pyxora.utils
 from time import perf_counter as time
 
 pygame = pyxora.pygame
-    
+
 class Test(pyxora.Scene):
     def _on_create(self):
         self.rect = pyxora.Rect(self.Display.get_center(),(200,200),"black")
         self.circle = pyxora.Circle(self.Display.get_center(),100,"red")
         self.circle2 = pyxora.Circle((0,0),200,"blue")
+
+        self.text = pyxora.Text("This is a text",self.Display.get_center(),"white",align="center")
 
         ms = round(self.get_delay() * 1000)
         print(f"Scene created with : {ms}ms delay")
@@ -60,6 +62,7 @@ class Test(pyxora.Scene):
         self.Display.draw_shape(self.rect,fill=10)
         self.Display.draw_shape(self.circle,fill=5)
         self.Display.draw_shape(self.circle2,fill=5)
+        self.Display.draw_text(self.text)
 
     @pyxora.utils.event_listener("hello_world")
     def print_hello(self):
