@@ -45,7 +45,7 @@ class Text:
         # Initialize the font cahe
         self.__cache_font() if (font_name,size) not in self.Fonts else setattr(self,"Font",self.Fonts[(font_name,size)])
         # Initialize the surface cache
-        self.__cache_surface() if(self.Font,self._text) not in self.Surfaces else setattr(self,"surface",self.Surfaces[(self.Font,self._text)])
+        self.__cache_surface() if(self.Font,self._text) not in self.Surfaces else setattr(self,"_surface",self.Surfaces[(self.Font,self._text)])
 
         # change the position of the text based on the alignment
         self.__fix_pos(align)
@@ -107,6 +107,66 @@ class Text:
         return font_size
 
     @property
+    def pos(self) -> pygame.math.Vector2 | pygame.math.Vector3:
+        """
+        Get a copy of the position of the text.
+
+        Returns:
+            pygame.math.Vector2 or pygame.math.Vector3: The position of the text.
+        """
+        return self._pos.copy()
+
+    @property
+    def value(self) -> str:
+        """
+        Get the value of the text.
+
+        Returns:
+            str: The value of the text.
+        """
+        return self._text
+
+    @property
+    def color(self) -> str | tuple:
+        """
+        Get the color of the text.
+
+        Returns:
+            (str or tuple): The color of the text.
+        """
+        return self._color
+
+    @property
+    def font(self) -> str:
+        """
+        Get the color of the text.
+
+        Returns:
+            (str): The font name
+        """
+        return self._font_name
+
+    @property
+    def font_size(self) -> int:
+        """
+        Get the size of the text font.
+
+        Returns:
+            int: The size of the text font.
+        """
+        return self._size
+
+    @property
+    def size(self) -> int:
+        """
+        Get the surface size of the text font.
+
+        Returns:
+            int: The size of the text font.
+        """
+        return self._surface.get_size()
+
+    @property
     def rect(self) -> pygame.Rect:
         """
         Get the rectangle bounds of the text surface.
@@ -114,7 +174,7 @@ class Text:
         Returns:
             pygame.Rect: The rectangle with position applied.
         """
-        _rect = self.surface.get_rect()
+        _rect = self._surface.get_rect()
         _rect.x = self._pos[0]
         _rect.y = self._pos[1]
         return _rect
@@ -141,7 +201,7 @@ class Text:
         self._pos.x = pos[0]
         self._pos.y = pos[1]
 
-    def draw(self,surf,scale) -> None:
+    def draw(self,surf: pygame.Surface,scale: float) -> None:
         """
         Draws the text on the given surface.
 
@@ -153,10 +213,10 @@ class Text:
         """
         zoom = scale
         if zoom == 1:
-            surf.blit(self.surface, self._pos)
+            surf.blit(self._surface, self._pos)
             return
         if not self._zoom == zoom:
-            self._zoom_surface = pygame.transform.scale_by(self.surface, zoom)
+            self._zoom_surface = pygame.transform.scale_by(self._surface, zoom)
             self._zoom = zoom
         surf.blit(self._zoom_surface, self._pos)
 
@@ -168,12 +228,12 @@ class Text:
         This method ensures that the text surface is only rendered once and stored in a cache.
         If the cache limit is reached, the oldest cached surface is removed to make room for the new one.
         """
-        self.surface = self.Font.render(self._text, False, self._color)
+        self._surface = self.Font.render(self._text, False, self._color)
 
         if len(self.Surfaces) >= self._cache_limit:
             self.Surfaces and self.Surfaces.popitem(last=True)
 
-        self.Surfaces[(self.Font,self._text)] = self.surface
+        self.Surfaces[(self.Font,self._text)] = self._surface
 
     def __cache_font(self) -> None:
         """
@@ -186,7 +246,7 @@ class Text:
 
         self.Fonts[(self._font_name,self._size)] = self.Font
 
-    def __fix_pos(self,align):
+    def __fix_pos(self,align: str) -> None:
         """
         Adjust the text position based on the specified alignment.
 
@@ -202,7 +262,6 @@ class Text:
             self._pos.x -= rect.width / 2
             self._pos.y -= rect.height / 2
         elif align == "right":
-            self._pos.x -= rect.width
-            self._pos.y -= rect.height / 2
+            self._pos.x += rect.width / 2
         else:
             raise ValueError(f"Invalid alignment: {align}")
