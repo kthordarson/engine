@@ -10,4 +10,5 @@ It provides helper functions or classes that unify interfaces (such as vectors, 
 # from .image import Image
 from .shapes import Rect,Circle
 from .text import Text
+from .image import Image
 from .others import *

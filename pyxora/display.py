@@ -179,8 +179,7 @@ class Display:
         """
         Txt.draw(cls.surf, scale=1)
 
-    # not ready
-    '''
+
     @classmethod
     def draw_image(cls, Image) -> None:
         """
@@ -190,8 +189,6 @@ class Display:
             Image: An image object with a `.draw()` method.
         """
         Image.draw(cls.surf, scale=1)
-
-    '''
 
     # Note: I planned to use the new pygame.Window for more features,
     # but it caused issues with pybgag (web builds), so set_mode for now.

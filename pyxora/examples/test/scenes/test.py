@@ -11,6 +11,8 @@ class Test(pyxora.Scene):
         self.circle = pyxora.Circle(self.Display.get_center(),100,"red")
         self.circle2 = pyxora.Circle((0,0),200,"blue")
 
+        self.icon = pyxora.Image(pyxora.Assets.get("engine","images","logo"),(0,0),align="topleft")
+
         self.text = pyxora.Text("This is a text",self.Display.get_center(),"white",align="center")
 
         ms = round(self.get_delay() * 1000)
@@ -62,6 +64,7 @@ class Test(pyxora.Scene):
         self.Display.draw_shape(self.rect,fill=10)
         self.Display.draw_shape(self.circle,fill=5)
         self.Display.draw_shape(self.circle2,fill=5)
+        self.Display.draw_image(self.icon)
         self.Display.draw_text(self.text)
 
     @pyxora.utils.event_listener("hello_world")
