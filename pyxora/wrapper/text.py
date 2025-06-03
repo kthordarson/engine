@@ -115,7 +115,7 @@ class Text:
         return font_size
 
     @property
-    def pos(self) -> pygame.math.Vector2 | pygame.math.Vector3:
+    def position(self) -> pygame.math.Vector2 | pygame.math.Vector3:
         """
         Get a copy of the position of the text.
 

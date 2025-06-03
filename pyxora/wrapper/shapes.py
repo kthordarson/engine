@@ -19,7 +19,7 @@ class Shape(ABC):
         self._color = color
 
     @property
-    def pos(self) -> pygame.math.Vector2 | pygame.math.Vector3:
+    def position(self) -> pygame.math.Vector2 | pygame.math.Vector3:
         """property to get a copy of the position of the shape."""
         return self._pos.copy()
 
@@ -160,7 +160,7 @@ class Circle(Shape):
         Returns:
             pygame.Rect: The bounding rectangle that encloses the circle.
         """
-        pos = (self.pos[0] - self.radius, self.pos[1] - self.radius)  # Top-left corner of the bounding rect
+        pos = (self._pos[0] - self.radius, self._pos[1] - self.radius)  # Top-left corner of the bounding rect
         size = (self.radius * 2, self.radius * 2)  # Size of the bounding rectangle
         return pygame.Rect(pos, size)
 
@@ -174,7 +174,7 @@ class Circle(Shape):
             scale (int | float): The scale factor for the circle size.
         """
         # Scale the circle and fill value
-        pos = self.pos
+        pos = self._pos
         fill *= scale
         radius = self.radius * scale  # Scale the radius
         fill = ceil(fill)  # Ensure fill is an integer
