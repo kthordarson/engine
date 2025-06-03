@@ -2,14 +2,22 @@ from . import Assets,Display,debug
 from .utils import engine,asyncio
 
 from time import perf_counter as time
-from typing import Any
+from typing import Dict,Tuple,Any
 
 import pygame
 
 class SceneManager:
     """The Main Manager of the Scenes."""
-    scene: tuple[str, "Scene"] = (None, None)
-    """The current scene (name and scene object)."""
+    scenes: Dict[str, Tuple[str, "Scene", Any]] = {}
+    """A mapping of scene keys to (name, Scene object, additional data) tuples."""
+
+    selected: str
+    """The currently selected scene"""
+
+    @property
+    def scene(self) -> Tuple[str, "Scene", Any]:
+        """Property to get the active scene."""
+        return self.scenes.get(self.selected,(None,None,None))
 
     # --- Scene Control ---
     @classmethod
@@ -17,12 +25,13 @@ class SceneManager:
         """
         Start the main game loop.
         """
-        scene_object = cls.scene[1]
-        if not scene_object:
+        scene = cls.scene
+        if not scene:
             engine.error(Exception("No scene selected"),debug)
             engine.quit()
 
         # Main game loop
+        scene_object = scene[1]
         while True:
             await scene_object.run()
             await asyncio.sleep(0)
@@ -41,10 +50,10 @@ class SceneManager:
             engine.error(RuntimeError(f"Scene: {name}, not found in data/scenes folder"),debug)
             engine.quit()
 
-        cls._set_scene(name, scene(**kwargs))
+        cls._set_scene(name, scene(**kwargs),**kwargs)
 
     @classmethod
-    def change_to(cls, name: str) -> None:
+    def change_to(cls, name: str, **kwargs) -> None:
         """
         Exit and change to a different scene.
 
@@ -52,22 +61,7 @@ class SceneManager:
             name (str): The name of the scene to switch to.
         """
         cls.__exit()
-        cls.create(name)
-
-    @classmethod
-    def restart(cls) -> None:
-        """
-        Restart the current scene.
-        """
-        cls.__exit()
-
-    @classmethod
-    def reset(cls) -> None:
-        """
-        Reset the current scene by re-creating it.
-        """
-        cls.__exit()
-        cls.change_to(cls.scene[0])
+        cls.create(name,**kwargs)
 
     @classmethod
     def pause(cls) -> None:
@@ -101,7 +95,7 @@ class SceneManager:
         scene_obj.quit()
 
     @classmethod
-    def _set_scene(cls, name: str, scene: "Scene") -> None:
+    def _set_scene(cls, name: str, scene: "Scene", **kwargs) -> None:
         """
         Set the current scene.
 
@@ -112,15 +106,15 @@ class SceneManager:
         Returns:
             Tuple[str, Scene]: A tuple containing the scene name and the scene instance.
         """
-        cls.scene = (name, scene)
+        cls.scene = (name, scene, kwargs)
 
     @classmethod
     def __exit(cls) -> None:
         """Exit the current scene."""
+        scene_obj = cls.scene[1]
         if not scene_obj:
             engine.error(Exception("No scene found"),debug)
             engine.quit()
-        scene_obj = cls.scene[1]
         scene_obj.exit()
 
 class SceneEvent:
@@ -404,6 +398,12 @@ class Scene:
     def _on_quit(self) -> None:
         """@public Called once at the scene quit "Scene.quit()". Override this func in your subclass to add code."""
         pass
+    def _on_restart(self) -> None:
+        """@public Called once at every scene restart "Scene.restart()". Override this func in your subclass to add code."""
+        pass
+    def _on_reset(self) -> None:
+        """@public Called once at the scene reset "Scene.reset()". Override this func in your subclass to add code."""
+        pass
     def _on_resume(self) -> None:
         """@public Called once at the scene resume "Scene.resume()". Override this func in your subclass to add code."""
         pass
@@ -552,6 +552,19 @@ class Scene:
         # I might need to find a better solution in the future
         self.dt = 0
         self._on_resume()
+
+    def restart(self):
+        """Restart the scene."""
+        self.__running = False
+        self._on_restart()
+
+    def reset(self):
+        """Reset the scene."""
+        self.__running = False
+        self._on_reset()
+        # manual create a new scene
+        name, obj, kwargs = self.Manager.scene
+        self.Manager.create(name,**kwargs)
 
     def exit(self):
         """Exits the game loop."""

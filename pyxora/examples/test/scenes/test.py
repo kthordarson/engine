@@ -7,16 +7,8 @@ pygame = pyxora.pygame
 
 class Test(pyxora.Scene):
     def _on_create(self):
-        self.rect = pyxora.Rect(self.Display.get_center(),(200,200),"black")
-        self.circle = pyxora.Circle(self.Display.get_center(),100,"red")
-        self.circle2 = pyxora.Circle((0,0),200,"blue")
-
-        self.icon = pyxora.Image(pyxora.Assets.get("engine","images","logo"),(0,0),align="topleft")
-
-        self.text = pyxora.Text("This is a text",self.Display.get_center(),"white",align="center")
-
         ms = round(self.get_delay() * 1000)
-        print(f"Scene created with : {ms}ms delay")
+        print(f"Scene created : {ms}ms")
 
     def _start(self):
         self.background_color = "gray"
@@ -27,11 +19,28 @@ class Test(pyxora.Scene):
         self.Event.schedule("hello_world",1000)
         self.Event.schedule("performance",1000)
         self.Event.schedule("print_delay",100)
+
+        self.rect = pyxora.Rect(self.Display.get_center(),(200,200),"black")
+        self.circle = pyxora.Circle(self.Display.get_center(),100,"red")
+        self.circle2 = pyxora.Circle((0,0),200,"blue")
+
+        self.icon = pyxora.Image(pyxora.Assets.get("engine","images","logo"),(0,0),align="topleft")
+
+        self.text = pyxora.Text("This is a text",self.Display.get_center(),"white",align="center")
+
         print(f"Scene Start")
 
     def _on_keydown(self,key):
-        key == "p" and self.Manager.pause()
+        key == "p" and self.pause()
         key == "f5" and self.Display.toggle_fullscreen()
+        key == "r" and self.restart()
+        key == "`" and self.reset()
+
+    def _on_restart(self):
+        print("Scene Restart")
+
+    def _on_reset(self):
+        print("Scene Reset")
 
     def _on_paused_keydown(self,key):
         key == "p" and self.Manager.resume()
