@@ -41,7 +41,7 @@ class Image:
         self.__apply_alignment(align)
 
     @property
-    def pos(self) -> pygame.math.Vector2 | pygame.math.Vector3:
+    def position(self) -> pygame.math.Vector2 | pygame.math.Vector3:
         """
         Get a copy of the position of the text.
 
@@ -92,6 +92,18 @@ class Image:
         _rect.x = self._pos[0]
         _rect.y = self._pos[1]
         return _rect
+
+    @property
+    def memory(self) -> int:
+        """
+        Returns the memory size of the image in bytes.
+
+        Returns:
+            int: The memory size of the image surface.
+        """
+        bytes_per_pixel = self._surface.get_bytesize()
+        width,height = self._surface.get_size()
+        return width * height * bytes_per_pixel
 
     def move(self,pos: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3) -> None:
         """

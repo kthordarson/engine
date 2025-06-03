@@ -1,8 +1,19 @@
 from .others import vector
+from ..assets import Assets
+from ..utils import engine
+
 from typing import Union,Tuple
 from collections import OrderedDict
 
 import pygame
+
+text_sizes = {
+    1, 2, 4, 8, 10, 12,
+    14, 16, 18, 24, 32,
+    48, 64, 72, 96, 128,
+    144, 192, 256
+}
+"""The available text sizes"""
 
 class Text:
     """
@@ -12,15 +23,13 @@ class Text:
     alignment options, scaling (zoom), and limiting cache size.
     """
 
-    Fonts: dict = {}
-    """The fonts cache"""
-    Surfaces: dict = OrderedDict()
+    surfaces: dict = OrderedDict()
     """The surfaces cache"""
     _cache_limit = 10000 # default surface cache limit is 10000
 
     def __init__(
         self,text: str,pos: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3,color: str | tuple,
-        font_name: str= pygame.font.get_default_font(),size: int= 20,align: str= "left") -> None:
+        font_name: str=pygame.font.get_default_font().split(".")[0],size: int= 24,align: str= "left") -> None:
         """
         Initialize a Text object.
 
@@ -28,27 +37,29 @@ class Text:
         pos (pos: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3): The position of the text.
             text (str): The string to render.
             color (str or tuple): The color of the text.
-            font_name (str): Name or path of the font to use.
+            font_name (str): The text font name.
             size (int): Font size.
             align (str): Alignment of the text: "left", "center", or "right".
         """
+        size = self.__fix_size(size)
+        font = self.__get_font(font_name,size)
+
         self._text = text
         self._pos = vector(*pos)
         self._color = color
-
         self._font_name = font_name
+
+        self._font = font
         self._size = size
 
         self._zoom = 1
         self._zoom_surface = None # cache the zoom_surface for performance
 
-        # Initialize the font cahe
-        self.__cache_font() if (font_name,size) not in self.Fonts else setattr(self,"Font",self.Fonts[(font_name,size)])
         # Initialize the surface cache
-        self.__cache_surface() if(self.Font,self._text) not in self.Surfaces else setattr(self,"_surface",self.Surfaces[(self.Font,self._text)])
+        self._cache_surface() if(font,text) not in self.surfaces else setattr(self,"_surface",self.surfaces[(font,text)])
 
         # change the position of the text based on the alignment
-        self.__fix_pos(align)
+        self._align_pos(align)
 
     @classmethod
     def set_cache(cls,new_limit: int) -> None:
@@ -69,17 +80,17 @@ class Text:
         Returns:
             int: The number of cached surfaces.
         """
-        return len(cls.Surfaces)
+        return len(cls.surfaces)
 
     @classmethod
     def clear_cache(cls) -> None:
         """
         Clear all cached text surfaces.
         """
-        cls.Surfaces.clear()
+        cls.surfaces.clear()
 
     @classmethod
-    def size_for(cls,text: str, size: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3, font_name: str) -> int:
+    def font_size_for(cls,text: str, size: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3, font_name: str) -> int:
         """
         Calculates the largest font size that fits the text inside a given area.
 
@@ -91,18 +102,15 @@ class Text:
         Returns:
             int: Maximum font size that fits.
         """
-        font_size = 1
         width,height = size[0],size[1]
         font_type = "sys" if font_name.lower() in pygame.font.get_fonts() else "local"
-        while font_size < 2048:
-            font = pygame.font.SysFont(font_name, font_size) if font_type == "sys" else pygame.font.Font(font_name, font_size)
+        for font_size in text_sizes:
+            font = cls.__get_font(font_name, font_size)
             text_surface = font.render(text, True, (0, 0, 0))
             text_width, text_height = text_surface.get_size()
 
             if text_width > width or text_height > height:
                 return font_size - 1
-
-            font_size *= 2 # power of 2 for speed, less accurate
 
         return font_size
 
@@ -179,6 +187,18 @@ class Text:
         _rect.y = self._pos[1]
         return _rect
 
+    @property
+    def memory(self) -> int:
+        """
+        Returns the memory size of the text in bytes.
+
+        Returns:
+            int: The memory size of the text surface.
+        """
+        bytes_per_pixel = self._surface.get_bytesize()
+        width,height = self._surface.get_size()
+        return width * height * bytes_per_pixel
+
     def move(self,pos: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3) -> None:
         """
         Moves the text by the given offset.
@@ -221,32 +241,21 @@ class Text:
         surf.blit(self._zoom_surface, self._pos)
 
 
-    def __cache_surface(self) -> None:
+    def _cache_surface(self) -> None:
         """
         Caches the rendered text surface for future use.
 
         This method ensures that the text surface is only rendered once and stored in a cache.
         If the cache limit is reached, the oldest cached surface is removed to make room for the new one.
         """
-        self._surface = self.Font.render(self._text, False, self._color)
+        self._surface = self._font.render(self._text, False, self._color)
 
-        if len(self.Surfaces) >= self._cache_limit:
-            self.Surfaces and self.Surfaces.popitem(last=True)
+        if len(self.surfaces) >= self._cache_limit:
+            self.surfaces and self.surfaces.popitem(last=True)
 
-        self.Surfaces[(self.Font,self._text)] = self._surface
+        self.surfaces[(self._font,self._text)] = self._surface
 
-    def __cache_font(self) -> None:
-        """
-        Caches the font for future use.
-        """
-        if self._font_name.lower() in pygame.font.get_fonts():
-            self.Font = pygame.font.SysFont(self.font_name.lower(), self._size,False,False)
-        else:
-            self.Font = pygame.font.Font(self._font_name, self._size)
-
-        self.Fonts[(self._font_name,self._size)] = self.Font
-
-    def __fix_pos(self,align: str) -> None:
+    def _align_pos(self,align: str) -> None:
         """
         Adjust the text position based on the specified alignment.
 
@@ -265,3 +274,37 @@ class Text:
             self._pos.x += rect.width / 2
         else:
             raise ValueError(f"Invalid alignment: {align}")
+
+    @staticmethod
+    def __get_font(font_name: str, size: int) -> pygame.font.Font:
+        """
+        Retrieves the font from the assets.
+
+        Args:
+            font_name (str): The name of the font.
+
+        Returns:
+            pygame.font.Font: The font object.
+        """
+        font = Assets.get("data","fonts",font_name) or Assets.get("engine","fonts",font_name)
+        if not font:
+            raise ValueError(f"Font '{font_name}' not found.")
+        return font.get(size)
+
+    @staticmethod
+    def __fix_size(size: int) -> int:
+        """
+        Returns the closest supported font size from the default set.
+
+        Args:
+            size (int): The requested font size.
+
+        Returns:
+            int: The closest allowed font size.
+        """
+        closest = min(text_sizes, key=lambda s: abs(s - size))
+
+        if closest != size:
+            engine.warning(f"Font size {size} not available. Using closest: {closest}")
+            return closest
+        return size

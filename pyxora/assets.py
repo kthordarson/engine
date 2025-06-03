@@ -11,7 +11,8 @@ loaders = {
     "images":lambda path:pygame.image.load(path).convert_alpha(),
     "music": lambda path:None,
     "sound_effects":lambda path:None,
-    "fonts": lambda path:None,
+    "fonts": lambda path: {size: pygame.font.Font(path, size) for size in
+        {1, 2, 4, 8, 10, 12, 14, 16, 18, 24, 32, 48, 64, 72, 96, 128, 144, 192, 256}},
     "scenes": lambda path: python.load_class(path,python.get_filename(path).title().replace(" ", "_")),
     "scripts": lambda path: python.load_class(path,python.get_filename(path).title().replace(" ", "_"))
 }
@@ -30,7 +31,7 @@ class Data:
 
     def __repr__(self) -> str:
         return (
-            f"<Data | "
+            f"<Loaded Data | "
             f"images: {len(self.images)}, "
             f"fonts: {len(self.fonts)}, "
             f"scenes: {len(self.scenes)}, "
@@ -67,6 +68,7 @@ class Assets:
         """
         cls._load_engine_files()
         cls.load("engine") # always load the engine data
+        cls.engine.fonts.update(cls.__get_default_font()) # add default font to engine
 
         cls._load_data_files(
             path_images,path_fonts,
@@ -154,13 +156,13 @@ class Assets:
             paths["images"] = cls.__get_full_path(path_images)
 
         if path_fonts is not None:
-            paths["fonts"] = cls.__get_full_font(path_fonts)
+            paths["fonts"] = cls.__get_full_path(path_fonts)
 
         if path_songs is not None:
-            paths["songs"] = cls.__get_full_font(path_songs)
+            paths["songs"] = cls.__get_full_path(path_songs)
 
         if path_sound_effects is not None:
-            paths["sound_effects"] = cls.__get_full_font(path_sound_effects)
+            paths["sound_effects"] = cls.__get_full_path(path_sound_effects)
 
         if path_scenes is not None:
             paths["scenes"] = cls.__get_full_path(path_scenes)
@@ -182,6 +184,23 @@ class Assets:
         }
 
         cls.engine.files = cls.__get_all_files(paths)
+
+    @staticmethod
+    def __get_default_font() -> dict[str, dict[int, pygame.font.Font]]:
+        """
+        Loads the default system font in a variety of common sizes.
+
+        Returns:
+            dict[str, dict[int, pygame.font.Font]]:
+                A dictionary mapping the default font name to another dictionary
+                that maps font sizes to `pygame.font.Font` objects.
+        """
+        name = pygame.font.get_default_font().split(".")[0]
+        sizes = {
+            size: pygame.font.SysFont(name, size) for size in
+            {1, 2, 4, 8, 10, 12, 14, 16, 18, 24, 32, 48, 64, 72, 96, 128, 144, 192, 256}
+        }
+        return {name: sizes}
 
     @staticmethod
     def __get_all_files(path,ignore=None) -> dict[str, dict[str, str]]:
@@ -217,11 +236,11 @@ class Assets:
             for root, dirs, files in os.walk(value,topdown=False):
                 ftype = os.path.basename(root)
                 if ftype in ignore: continue
-                data[ftype] = {}
+                data[key] = {}
                 for file in files:
                     full_path = os.path.join(root, file)
                     name,_ = os.path.splitext(os.path.basename(full_path))
-                    data[ftype][name] = full_path
+                    data[key][name] = full_path
         return data
 
     @staticmethod
