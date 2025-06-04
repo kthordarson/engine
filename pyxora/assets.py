@@ -9,8 +9,8 @@ import pygame
 
 loaders = {
     "images":lambda path:pygame.image.load(path).convert_alpha(),
-    "music": lambda path:None,
-    "sound_effects":lambda path:None,
+    "music": lambda path:path, # pygame.music loads only the last music file
+    "sfx":lambda path:pygame.mixer.Sound(path),
     "fonts": lambda path: {size: pygame.font.Font(path, size) for size in
         {1, 2, 4, 8, 10, 12, 14, 16, 18, 24, 32, 48, 64, 72, 96, 128, 144, 192, 256}},
     "scenes": lambda path: python.load_class(path,python.get_filename(path).title().replace(" ", "_")),
@@ -27,7 +27,7 @@ class Data:
     scenes: dict[str, Any] = field(default_factory=dict)
     scripts: dict[str, Any] = field(default_factory=dict)
     music: dict[str, Any] = field(default_factory=dict)
-    sound_effects: dict[str, Any] = field(default_factory=dict)
+    sfx: dict[str, Any] = field(default_factory=dict)
 
     def __repr__(self) -> str:
         return (
@@ -37,7 +37,7 @@ class Data:
             f"scenes: {len(self.scenes)}, "
             f"scripts: {len(self.scripts)}, "
             f"music: {len(self.music)}, "
-            f"sound_effects: {len(self.sound_effects)}>"
+            f"sfx: {len(self.sfx)}>"
         )
 
 class Assets:
@@ -51,7 +51,7 @@ class Assets:
         cls,
         path_images: str = None,path_fonts: str = None,
         path_scenes: str = None,path_scripts: str = None,
-        path_songs: str = None,path_sound_effects: str = None,
+        path_music: str = None,path_sfx: str = None,
         pre_load: bool = True
     ) -> None:
         """
@@ -62,8 +62,8 @@ class Assets:
             path_fonts (str, optional): Path to font files.
             path_scenes (str, optional): Path to scene files.
             path_scripts (str, optional): Path to script files.
-            path_songs (str, optional): Path to song files.
-            path_sound_effects (str, optional): Path to sound effect files.
+            path_music (str, optional): Path to song files.
+            path_sfx (str, optional): Path to sound effect files.
             pre_load (bool): Whether to preload the assets immediately. Defaults to True.
         """
         cls._load_engine_files()
@@ -73,7 +73,7 @@ class Assets:
         cls._load_data_files(
             path_images,path_fonts,
             path_scenes,path_scripts,
-            path_songs,path_sound_effects
+            path_music,path_sfx
         )
         pre_load and cls.load("data")
 
@@ -136,7 +136,7 @@ class Assets:
     def _load_data_files(cls,
         path_images: str,path_fonts: str ,
         path_scenes: str,path_scripts: str,
-        path_songs: str,path_sound_effects: str) -> None:
+        path_music: str,path_sfx: str) -> None:
         """
         This method scans each provided directory path and organizes the discovered files
         into a structured dictionary (e.g., `Data.files`).
@@ -146,8 +146,8 @@ class Assets:
             path_fonts (str): Path to font files.
             path_scenes (str): Path to scene files.
             path_scripts (str): Path to script files.
-            path_songs (str): Path to song/music files.
-            path_sound_effects (str): Path to sound effect files.
+            path_music (str): Path to music files.
+            path_sfx (str): Path to sound effect files.
         """
 
 
@@ -158,11 +158,11 @@ class Assets:
         if path_fonts is not None:
             paths["fonts"] = cls.__get_full_path(path_fonts)
 
-        if path_songs is not None:
-            paths["songs"] = cls.__get_full_path(path_songs)
+        if path_music is not None:
+            paths["music"] = cls.__get_full_path(path_music)
 
-        if path_sound_effects is not None:
-            paths["sound_effects"] = cls.__get_full_path(path_sound_effects)
+        if path_sfx is not None:
+            paths["sfx"] = cls.__get_full_path(path_sfx)
 
         if path_scenes is not None:
             paths["scenes"] = cls.__get_full_path(path_scenes)
@@ -241,6 +241,7 @@ class Assets:
                     full_path = os.path.join(root, file)
                     name,_ = os.path.splitext(os.path.basename(full_path))
                     data[key][name] = full_path
+
         return data
 
     @staticmethod
