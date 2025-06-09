@@ -1,11 +1,10 @@
+import sys
+
 __all__ = [
     "get_platform","get_web_platform",
     "is_web","is_local",
     "is_windows","is_linux","is_mac","is_android"
 ]
-
-import sys
-
 
 def get_platform() -> str:
     """

@@ -6,8 +6,10 @@
 A simple game engine made with Python and pygame-ce.
 """
 
+from importlib.metadata import version as _version
+__version__ = _version("pyxora")
+
 __project__ = "pyxora"
-__version__ = "0.2.2"
 __author__ = "ToniDevStuff"
 
 __docformat__ = "google"

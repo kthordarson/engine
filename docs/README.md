@@ -2,16 +2,19 @@
 
 ## Getting Started
 
-Before you begin, make sure you have **pdoc** installed:
+Navigate to the project directory:
 
 ```bash
-pip install pdoc
+cd path/to/pyxora/
 ```
-Navigate to the project directory:
+
+Install the dependencies required for documentation:
+
 ```bash
-cd path/to/pyxora
+pip install -r docs/requirements.txt
 ```
-View documentation in the browser:
+
+View the documentation locally in the browser (starts a local server):
 
 ```bash
 python -m docs
@@ -22,7 +25,7 @@ python -m docs
 Build static HTML documentation:
 
 ```bash
-python -m docs --html
+python -m docs --build  # or  python -m docs -b
 ```
 
-This will generate HTML files in the given directory, which you can host or share.
+This command creates a build folder with static HTML files that you can host or share.

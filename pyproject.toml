@@ -5,8 +5,8 @@ authors = [{ name = "ToniDevStuff", email = "antonisdevstuff@gmail.com" }]
 description = "A simple game engine made with Python and pygame-ce"
 keywords = ["engine", "game engine", "2d game engine", "game development"]
 readme = "README.md"
+dynamic = ["dependencies"]
 requires-python = ">=3.11"
-dependencies = ["pygame-ce == 2.5.4"]
 license = "MIT"
 license-files = ["LICENCE.txt"]
 classifiers = [
@@ -21,4 +21,12 @@ classifiers = [
 Homepage = "https://github.com/ToniDevStuff/pyxora"
 
 [tool.setuptools]
+package-dir = { "pyxora" = "src" }
 packages = ["pyxora"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"

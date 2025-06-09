@@ -24,9 +24,7 @@ async def main():
 
     # Load game assets (e.g., images, sounds, etc.)
     pyxora.Assets.init(
-        path_images="/images",
         path_scenes="/scenes",
-        path_scripts="/scripts",
         pre_load = True
     )
 

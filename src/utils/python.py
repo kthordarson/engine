@@ -1,10 +1,3 @@
-from importlib.util import spec_from_file_location, module_from_spec
-import os.path as os_path
-from os import getcwd
-from sys import path as sys_path, modules
-
-__all__ = ["get_filename","get_filetype","load_module","load_class"]
-
 import os
 import sys
 from os.path import basename, splitext
@@ -14,6 +7,7 @@ from types import ModuleType
 from sys import path as sys_path, modules
 from os import getcwd
 
+__all__ = ["get_filename","get_filetype","load_module","load_class"]
 
 def get_filename(file_path: str) -> str:
     """
