@@ -1,5 +1,5 @@
-import pyxora
+from pyxora.utils import asyncio
 from .main import main
 
 if __name__ == "__main__":
-    pyxora.asyncio.run(main)
+    asyncio.run(main)

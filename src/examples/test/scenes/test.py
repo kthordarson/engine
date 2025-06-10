@@ -7,34 +7,33 @@ pygame = pyxora.pygame
 
 class Test(pyxora.Scene):
     def _on_create(self):
-        ms = round(self.get_delay() * 1000)
-        print(f"Scene created : {ms}ms")
+        print(f"Scene created at {time()}")
 
     def _start(self):
         self.background_color = "gray"
-        self.Event.create("hello_world",-1)
-        self.Event.create("performance",1)
-        self.Event.create("print_delay",0)
+        self.event.create("hello_world",-1)
+        self.event.create("performance",1)
+        self.event.create("print_delay",0)
 
-        self.Event.schedule("hello_world",1000)
-        self.Event.schedule("performance",1000)
-        self.Event.schedule("print_delay",100)
+        self.event.schedule("hello_world",1000)
+        self.event.schedule("performance",1000)
+        self.event.schedule("print_delay",100)
 
-        self.rect = pyxora.Rect(self.Display.get_center(),(200,200),"black")
-        self.circle = pyxora.Circle(self.Display.get_center(),100,"red")
+        self.rect = pyxora.Rect(self.display.get_center(),(200,200),"black")
+        self.circle = pyxora.Circle(self.display.get_center(),100,"red")
         self.circle2 = pyxora.Circle((0,0),200,"blue")
 
-        self.icon = pyxora.Image(pyxora.Assets.get("engine","images","logo"),(0,0),align="topleft")
+        self.icon = pyxora.Image(self.assets.get("engine","images","logo"),(0,0),align="topleft")
 
-        self.text = pyxora.Text("This is a text",self.Display.get_center(),"white",align="center")
+        self.text = pyxora.Text("This is a text",self.display.get_center(),"white",align="center")
 
         print(f"Scene Start")
 
     def _on_keydown(self,key):
-        key == "p" and self.pause()
-        key == "f5" and self.Display.toggle_fullscreen()
-        key == "r" and self.restart()
-        key == "`" and self.reset()
+        key == "p" and self.manager.pause()
+        key == "f5" and self.display.toggle_fullscreen()
+        key == "r" and self.manager.restart()
+        key == "`" and self.manager.reset()
 
     def _on_restart(self):
         print("Scene Restart")
@@ -43,7 +42,7 @@ class Test(pyxora.Scene):
         print("Scene Reset")
 
     def _on_paused_keydown(self,key):
-        key == "p" and self.Manager.resume()
+        key == "p" and self.manager.resume()
 
     def _on_keypressed(self,keys):
         speed = 100
@@ -70,20 +69,17 @@ class Test(pyxora.Scene):
         self.print_hello()
 
     def _draw(self):
-        self.Display.draw_shape(self.rect,fill=10)
-        self.Display.draw_shape(self.circle,fill=5)
-        self.Display.draw_shape(self.circle2,fill=5)
-        self.Display.draw_image(self.icon)
-        self.Display.draw_text(self.text)
+        self.display.draw_shape(self.rect,fill=10)
+        self.display.draw_shape(self.circle,fill=5)
+        self.display.draw_shape(self.circle2,fill=5)
+        self.display.draw_image(self.icon)
+        self.display.draw_text(self.text)
 
     @pyxora.utils.event_listener("hello_world")
     def print_hello(self):
-        counter = self.Event.get("hello_world").calls
+        counter = self.event.get("hello_world").calls
         print("[EVENT] Hello World",counter)
 
     @pyxora.utils.event_listener("performance")
     def print_performance(self):
         print(f"[EVENT] runtime: {int(self.runtime)}s, fps: {round(self.fps)}, dt: {self.dt}")
-
-    def get_delay(self):
-        return time() - self._global_start_time

@@ -1,4 +1,3 @@
-from pyxora import debug
 from .utils import engine,python
 
 from dataclasses import dataclass, field
@@ -260,6 +259,6 @@ class Assets:
         """
         path = os.path.normpath(os.getcwd()+path)
         if not os.path.exists(path):
-            engine.error(OSError(f"The path doesn't exist: {path}"),debug)
+            engine.error(OSError(f"The path doesn't exist: {path}"))
             engine.quit()
         return path

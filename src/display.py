@@ -11,7 +11,7 @@ class Display:
     window = None
     """The main display window"""
     surf = None
-    """The min display surface"""
+    """The main display surface"""
     clock = None
     """The main display clock"""
 

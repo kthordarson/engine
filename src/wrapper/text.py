@@ -1,4 +1,4 @@
-from .others import vector
+from .functions import vector
 from ..assets import Assets
 from ..utils import engine
 
@@ -34,7 +34,7 @@ class Text:
         Initialize a Text object.
 
         Args:
-        pos (pos: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3): The position of the text.
+            pos (pos: Tuple[int | float, int | float] | pygame.math.Vector2 | pygame.math.Vector3): The position of the text.
             text (str): The string to render.
             color (str or tuple): The color of the text.
             font_name (str): The text font name.

@@ -1,4 +1,4 @@
-from .others import vector
+from .functions import vector
 from abc import ABC, abstractmethod
 from math import ceil
 from typing import Tuple

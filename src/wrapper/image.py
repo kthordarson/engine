@@ -1,4 +1,4 @@
-from .others import vector
+from .functions import vector
 
 from typing import Union,Tuple
 

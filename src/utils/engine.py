@@ -1,19 +1,19 @@
-import pygame
+from pyxora import debug
 
+from traceback import extract_tb
 import os
 import sys
-from traceback import extract_tb
+
+import pygame
 
 __all__ = ["error","warning","quit"]
 
-
-def error(err: Exception, debug: bool) -> None:
+def error(err: Exception) -> None:
     """
-    Handles exceptions by printing or showing a popup error box.
+    Handles exceptions by showing a popup error box or printing if pyxora.debug is True.
 
     Args:
         err (Exception): The exception instance that was raised.
-        debug (bool): If True, print the error details to the console; otherwise, show a GUI message box.
     """
     error_type = type(err).__name__
     error_message = str(err)

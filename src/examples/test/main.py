@@ -6,7 +6,6 @@
 # ///
 
 import pyxora
-from pyxora.utils import python
 
 async def main():
     """initializing the engine and starting the main scene."""
@@ -29,10 +28,10 @@ async def main():
     )
 
     # Create and configure the initial scene (scene name,**kwargs)
-    pyxora.Scene.Manager.create("test", max_fps=-1)
+    pyxora.Scene.manager.create("test", max_fps=-1)
 
     # Start the async scene
-    await pyxora.Scene.Manager.start()
+    await pyxora.Scene.manager.start()
 
 if __name__ == "__main__":
     pyxora.asyncio.run(main)

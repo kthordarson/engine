@@ -5,7 +5,6 @@
 """
 A simple game engine made with Python and pygame-ce.
 """
-
 from importlib.metadata import version as _version
 __version__ = _version("pyxora")
 
@@ -16,6 +15,7 @@ __docformat__ = "google"
 __license__ = "MIT"
 
 debug: bool = True
+
 """
 Flag var indicating whether debug mode is enabled.\n
 Set it to `False` if you want to disable the extra debugging features.

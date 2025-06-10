@@ -1,10 +1,16 @@
-from . import Assets,Display,debug
+from .display import Display
+from .assets import Assets
 from .utils import engine,asyncio
 
 from time import perf_counter as time
-from typing import Dict,Tuple,Any
+from typing import Dict,Tuple,Any,Type
 
 import pygame
+
+class classproperty(property):
+    """@private class to create @classproperties"""
+    def __get__(self, obj, cls):
+        return self.fget(cls)
 
 class SceneManager:
     """The Main Manager of the Scenes."""
@@ -14,10 +20,10 @@ class SceneManager:
     selected: str
     """The currently selected scene"""
 
-    @property
-    def scene(self) -> Tuple[str, "Scene", Any]:
-        """Property to get the active scene."""
-        return self.scenes.get(self.selected,(None,None,None))
+    @classproperty
+    def scene(cls) -> Tuple[str, "Scene", Any]:
+        """Class Property to get the active scene."""
+        return cls.scenes.get(cls.selected,(None,None,None))
 
     # --- Scene Control ---
     @classmethod
@@ -25,16 +31,13 @@ class SceneManager:
         """
         Start the main game loop.
         """
-        scene = cls.scene
-        if not scene:
-            engine.error(Exception("No scene selected"),debug)
-            engine.quit()
-
-        # Main game loop
-        scene_object = scene[1]
         while True:
-            await scene_object.run()
-            await asyncio.sleep(0)
+            scene = cls.scene
+            if not scene:
+                engine.error(Exception("No scene selected"))
+                engine.quit()
+            scene_object = scene[1]
+            await scene_object._Scene__run()
 
     @classmethod
     def create(cls, name: str, **kwargs: Any) -> None:
@@ -47,20 +50,22 @@ class SceneManager:
         """
         scene = Assets.get("data","scenes",name)
         if not scene:
-            engine.error(RuntimeError(f"Scene: {name}, not found in data/scenes folder"),debug)
+            engine.error(RuntimeError(f"Scene: {name}, not found in data/scenes folder"))
             engine.quit()
-
-        cls._set_scene(name, scene(**kwargs),**kwargs)
+        cls.scene = (name, scene(**kwargs), kwargs)
 
     @classmethod
-    def change_to(cls, name: str, **kwargs) -> None:
+    def change(cls, name: str, **kwargs) -> None:
         """
         Exit and change to a different scene.
 
         Args:
             name (str): The name of the scene to switch to.
         """
-        cls.__exit()
+        scene_obj = cls.scene[1]
+        scene_obj._on_change()
+        scene_obj._Scene__running = False
+
         cls.create(name,**kwargs)
 
     @classmethod
@@ -69,19 +74,39 @@ class SceneManager:
         Pause the current scene.
         """
         scene_obj = cls.scene[1]
-        if not scene_obj:
-            engine.error(Exception("No scene found"),debug)
-            engine.quit()
-        scene_obj.pause()
+        scene_obj._on_pause()
+        scene_obj._Scene__paused = True
+        scene_obj._Scene__pause_last_time = time()
 
     @classmethod
     def resume(cls) -> None:
         """Resumes the current scene."""
         scene_obj = cls.scene[1]
-        if not scene_obj:
-            engine.error(Exception("No scene found"),debug)
-            engine.quit()
-        scene_obj.resume()
+        scene_obj._on_resume()
+        scene_obj._Scene__paused = False
+        scene_obj._Scene__dt = 0
+
+    @classmethod
+    def restart(cls) -> None:
+        """
+        Restart the current scene.
+        """
+        scene_obj = cls.scene[1]
+        scene_obj._on_restart()
+        scene_obj._Scene__running = False
+
+    @classmethod
+    def reset(cls) -> None:
+        """
+        Reset the current scene.
+        """
+        scene_obj = cls.scene[1]
+        scene_obj._on_reset()
+        scene_obj._Scene__running = False
+
+        # manual create a new scene
+        name, obj, kwargs = cls.scene
+        cls.create(name,**kwargs)
 
     @classmethod
     def quit(cls) -> None:
@@ -89,33 +114,8 @@ class SceneManager:
         Quit the application through the current scene.
         """
         scene_obj = cls.scene[1]
-        if not scene_obj:
-            engine.error(Exception("No scene found"),debug)
-            engine.quit()
-        scene_obj.quit()
-
-    @classmethod
-    def _set_scene(cls, name: str, scene: "Scene", **kwargs) -> None:
-        """
-        Set the current scene.
-
-        Args:
-            name (str): The name of the scene.
-            scene (Scene): The scene object.
-
-        Returns:
-            Tuple[str, Scene]: A tuple containing the scene name and the scene instance.
-        """
-        cls.scene = (name, scene, kwargs)
-
-    @classmethod
-    def __exit(cls) -> None:
-        """Exit the current scene."""
-        scene_obj = cls.scene[1]
-        if not scene_obj:
-            engine.error(Exception("No scene found"),debug)
-            engine.quit()
-        scene_obj.exit()
+        scene_obj._on_quit()
+        engine.quit()
 
 class SceneEvent:
     """
@@ -324,18 +324,9 @@ class SceneEvent:
         return (same or is_zero)
 
 class Scene:
-    Manager = SceneManager
-    """Manager: Reference to the scene manager (SceneManager)."""
-
-    Display = Display
-    """ Display: Reference to the scene's display handler (pyxora.Display)."""
-
-    global_runtime = 0
-    """ global_pausetime: The global runtime for all the scenes."""
-    global_pausetime = 0
-    """ global_runtime: The global pause time for all the scenes."""
-    _global_start_time = time()
-
+    """Represents a scene in the game."""
+    _global_runtime = _global_pausetime = 0
+    __global_start_time = time()
     def __init__(self,**kwargs: Any) -> None:
         """
         Initializes a Scene object.
@@ -346,11 +337,114 @@ class Scene:
         Raises:
             RuntimeError: If the Display has not been initialized. Call Display.init() first.
         """
-        if not self.Display.window:
-            engine.error(RuntimeError("Display has not been initialized! Call Display.init first."),debug)
+        if not self.display.window:
+            engine.error(RuntimeError("Display has not been initialized! Call Display.init first."))
             self.quit()
 
         self.__initialize(kwargs)
+
+    @classproperty
+    def manager(cls) -> Type[SceneManager]:
+        """Class Property to get the scene manager class"""
+        return SceneManager
+
+    @classproperty
+    def display(cls) -> Type[Display]:
+        """Class Property to get a direct reference to the engine Display class."""
+        return Display
+
+    @classproperty
+    def assets(cls) -> Type[Assets]:
+        """Class Property to get a direct reference to the engine Assets class."""
+        return Assets
+
+    @classproperty
+    def global_runtime(cls) -> float:
+        """Class Property to get the total run time across all scenes."""
+        return cls._global_runtime
+
+    @classproperty
+    def global_pausetime(cls) -> float:
+        """Class Property to get the total pause time across all scenes."""
+        return cls._global_pausetime
+
+    @property
+    def event(self) -> SceneEvent:
+        """Property to get the event handler instance of the current scene."""
+        return self._event
+
+    @property
+    def events(self) -> set:
+        """Property to get all the events of the current frame."""
+        return self._events
+
+    @property
+    def custom_events(self) -> set:
+        """Property to get all the custom events of the current frame."""
+        return self._custom_events
+
+    @property
+    def keys_pressed(self) -> set:
+        """Property to get the keys currently pressed of the current frame."""
+        return self._keys_pressed
+
+    @property
+    def dt(self) -> float:
+        """Property to get the time elapsed since the last frame."""
+        return self._dt
+
+    @property
+    def fps(self) -> float:
+        """Property to get the current frames per second."""
+        return self._fps
+
+    @property
+    def max_fps(self) -> int:
+        """Property to get the maximum frames per second limit."""
+        return self._max_fps
+
+    @max_fps.setter
+    def max_fps(self, value: int):
+        """Setter to set the maximum frames per second limit."""
+        self._max_fps = value
+
+    @property
+    def background_color(self) -> str | Tuple[int, int, int]:
+        """Property to get the background color"""
+        return self._background_color
+
+    @background_color.setter
+    def background_color(self, value: str | Tuple[int, int, int]):
+        """Setter to set the background color"""
+        self._background_color = value
+
+    @property
+    def runtime(self) -> float:
+        """Property to get the run time"""
+        return self._runtime
+
+    @property
+    def pausetime(self) -> float:
+        """Property to get the pause time"""
+        return self._pausetime
+
+    # Utils
+    def is_time(self,ms):
+        """Checks if a specified time interval has elapsed since the last frame."""
+        multiplier = 1/ms*1000
+        return int(self._runtime * multiplier) != int((self._runtime - self._dt) * multiplier)
+
+    def is_event(self,event_id):
+        """Checks if an event is happening during the frame. """
+        return event_id in self._events
+
+    def is_custom_event(self,event_name):
+        """Checks if a custom event is happening during the frame. """
+        return event_name in self._custom_events
+
+    def is_paused(self):
+        """Returns if the scene is paused."""
+        return self.__paused
 
     # Lifecycle Methods
     def _start(self) -> None:
@@ -393,22 +487,25 @@ class Scene:
 
     # Scene State Change Methods
     def _on_create(self) -> None:
-        """@public Called once at the scene creation "SceneManager.create()". Override this func in your subclass to add code."""
+        """@public Called once at the scene creation "manager.create()". Override this func in your subclass to add code."""
         pass
     def _on_quit(self) -> None:
-        """@public Called once at the scene quit "Scene.quit()". Override this func in your subclass to add code."""
+        """@public Called once at every scene quit "manager.quit()". Override this func in your subclass to add code."""
         pass
     def _on_restart(self) -> None:
-        """@public Called once at every scene restart "Scene.restart()". Override this func in your subclass to add code."""
+        """@public Called once at every scene restart "manager.restart()". Override this func in your subclass to add code."""
         pass
     def _on_reset(self) -> None:
-        """@public Called once at the scene reset "Scene.reset()". Override this func in your subclass to add code."""
+        """@public Called once at the scene reset "manager.reset()". Override this func in your subclass to add code."""
+        pass
+    def _on_change(self) -> None:
+        """@public Called once at the scene change "manager.change()". Override this func in your subclass to add code."""
         pass
     def _on_resume(self) -> None:
-        """@public Called once at the scene resume "Scene.resume()". Override this func in your subclass to add code."""
+        """@public Called once at the scene resume "manager.resume()". Override this func in your subclass to add code."""
         pass
     def _on_pause(self) -> None:
-        """@public Called once at the scene pause "Scene.pause()". Override this func in your subclass to add code."""
+        """@public Called once at the scene pause "manager.pause()". Override this func in your subclass to add code."""
         pass
     def _on_error(self,error: BaseException) -> None:
         """
@@ -515,7 +612,7 @@ class Scene:
 
     # Main Loop
     # Async to support pygbag export
-    async def run(self) -> None:
+    async def __run(self) -> None:
         """
         Starts the scene.
 
@@ -537,75 +634,16 @@ class Scene:
         except Exception as e:
             self.__handle_error(e)
 
-    # Scene Management
-    def pause(self) -> None:
-        """Pauses the scene."""
-        self.__paused = True
-        self.__pause_last_time = time()
-        self._on_pause()
-
-    def resume(self):
-        """Resumes the scene."""
-        self.__paused = False
-        # reset the dt for one frame after the pause
-        # that reduces any potensial spikes from the high pause fps
-        # I might need to find a better solution in the future
-        self.dt = 0
-        self._on_resume()
-
-    def restart(self):
-        """Restart the scene."""
-        self.__running = False
-        self._on_restart()
-
-    def reset(self):
-        """Reset the scene."""
-        self.__running = False
-        self._on_reset()
-        # manual create a new scene
-        name, obj, kwargs = self.Manager.scene
-        self.Manager.create(name,**kwargs)
-
-    def exit(self):
-        """Exits the game loop."""
-        self.__running = False
-
-    def quit(self):
-        """Quits the game entirely."""
-        self._on_quit()
-        engine.quit()
-
-    # Scene-Utils
-    def is_time(self,ms):
-        """Checks if a specified time interval has elapsed since the last frame."""
-        multiplier = 1/ms*1000
-        return int(self.runtime * multiplier) != int((self.runtime - self.dt) * multiplier)
-
-    def is_event(self,event_id):
-        """Checks if an event is happening during the frame. """
-        return event_id in self.events
-
-    def is_custom_event(self,event_name):
-        """Checks if a custom event is happening during the frame. """
-        return event_name in self.custom_events
-
-    def is_paused(self):
-        """Returns if the scene is paused."""
-        return self.__paused
-
-    def get_mouse_pos(self):
-        """Gets the current mouse pos."""
-        return pygame.mouse.get_pos()
-
-    # Private Methods
+    # All the methods below are used to handle the scene frames.
     def __initialize(self,kwargs):
         try:
-            self.max_fps = 60
-            self.background_color = (0, 0, 0)
+            self._max_fps = 60
+            self._background_color = (0, 0, 0)
 
             self.__running = True
             self.__paused = False
 
+            # set it here because the assets are loaded after the scene is initialized
             Display.set_icon(
                 Assets.get("engine","images","icon")
             )
@@ -625,13 +663,13 @@ class Scene:
 
     def __initialize_runtime(self):
         """Sets up initial basic runtime values."""
-        self.dt = self.fps = self.runtime = self.pausetime = 0
-        self.keys_pressed = set() # we manually keep track with the key_pressed every frame, set so no duplicates
-        self.events = set() # log events every frame
-        self.custom_events = set() # log custom events every frame
+        self._dt = self._fps = self._runtime = self._pausetime = 0
+        self._keys_pressed = set() # we manually keep track with the key_pressed every frame, set so no duplicates
+        self._events = set() # log events every frame
+        self._custom_events = set() # log custom events every frame
 
         # Create custom Scene events
-        self.Event = SceneEvent(self)
+        self._event = SceneEvent(self)
         # self.Camera = pyxora.Camera()
 
         self._start_time = time()
@@ -640,34 +678,34 @@ class Scene:
     def __handle_error(self,e):
         """ Handles every possible error with a nice message."""
         self._on_error(e)
-        engine.error(e,debug)
-        self.quit()
+        engine.error(e)
+        engine.quit()
 
     def __handle_events(self):
         """Handles events during runtime or when paused."""
-        self.events.clear()
-        self.custom_events.clear()
-        self.Event.update(-1 if self.__paused else 1)
+        self._events.clear()
+        self._custom_events.clear()
+        self._event.update(-1 if self.__paused else 1)
 
         on_keydown, on_keyup, on_keypressed, on_wheel, on_event = self.__event_handlers[self.__paused]
         for event in pygame.event.get():
-            self.events.add(event.type)
+            self._events.add(event.type)
 
             if hasattr(event, "custom"):
-                self.custom_events.add(event.name)
+                self._custom_events.add(event.name)
                 continue
 
             if event.type == pygame.QUIT:
-                self.quit()
+                self.manager.quit()
 
             elif event.type == pygame.KEYDOWN:
                 key = pygame.key.name(event.key)
-                self.keys_pressed.add(key)
+                self._keys_pressed.add(key)
                 on_keydown(key)
 
             elif event.type == pygame.KEYUP:
                 key = pygame.key.name(event.key)
-                self.keys_pressed.discard(key)
+                self._keys_pressed.discard(key)
                 on_keyup(key)
 
             elif event.type == pygame.MOUSEWHEEL:
@@ -675,12 +713,12 @@ class Scene:
                 on_wheel(wheel)
 
             elif event.type == pygame.VIDEORESIZE:
-                self.Display.set_res((event.w, event.h))
+                Display.set_res((event.w, event.h))
                 # self.Camera.dynamic_zoom()
             on_event(event)
 
-        if self.keys_pressed:
-            on_keypressed(self.keys_pressed)
+        if self._keys_pressed:
+            on_keypressed(self._keys_pressed)
 
 
     def __update(self):
@@ -693,10 +731,10 @@ class Scene:
     def __update_timers(self):
         """Updates global and local runtime timers."""
         delta = time() - self._start_time
-        global_delta = time() - self._global_start_time
+        global_delta = time() - self.__global_start_time
 
-        self.runtime = delta - self.pausetime
-        self.global_runtime = global_delta - self.global_pausetime
+        self._runtime = delta - self._pausetime
+        self._global_runtime = global_delta - self._global_pausetime
 
     def __update_paused_timers(self):
         """Tracks time spent in pause mode."""
@@ -705,8 +743,8 @@ class Scene:
         # but not the best :D
         delta = time() - self.__pause_last_time
 
-        self.pausetime += delta
-        self.global_pausetime += delta
+        self._pausetime += delta
+        self._global_pausetime += delta
 
         self.__pause_last_time = time()
 
@@ -715,7 +753,7 @@ class Scene:
     def __update_fps(self):
         """Updates the current scene fps every 250ms."""
         if self.is_time(250):
-            self.fps = self.Display.clock.get_fps()
+            self._fps = Display.clock.get_fps()
 
     def __render(self):
         """Renders the scene."""
@@ -725,16 +763,16 @@ class Scene:
 
     def __draw_background(self):
         """Clears the screen with the background color."""
-        self.Display.surf.fill(self.background_color)
+        Display.surf.fill(self._background_color)
 
     def __draw_display(self):
         """Draws the display."""
-        surf = self.Display.get_stretch_surf() if self.Display.is_resized() else self.Display.surf
-        self.Display.window.blit(surf,(0,0))
+        surf = Display.get_stretch_surf() if Display.is_resized() else Display.surf
+        Display.window.blit(surf,(0,0))
 
     def __flip(self):
         """Updates the display with the latest frame."""
         self.__update_fps() # I think updating the fps before the flip is the best place?
-        self.dt = self.Display.clock.tick(self.max_fps) / 1000 # Also take the dt
+        self._dt = Display.clock.tick(self._max_fps) / 1000 # Also take the dt
         self.__draw_display()
         pygame.display.flip()
