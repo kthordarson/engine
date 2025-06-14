@@ -4,7 +4,7 @@ This module wraps and simplifies access to engine dependencies like pygame and p
 It provides helper functions or classes that unify interfaces (such as vectors, shapes, etc.).
 """
 
-from .shapes import Rect,Circle
+from .shapes import Shape,Rect,Circle
 from .text import Text
 from .image import Image
 from .music import Music

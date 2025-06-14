@@ -40,10 +40,10 @@ from .wrapper import *
 from .utils import asyncio,engine
 
 # (Not ready)
-# from .camera import Camera
 # from .object import Object,ObjectScript,Objects
 from .assets import Assets
 from .display import Display
+from .camera import Camera
 from .scene import Scene
 
 version: str = __version__

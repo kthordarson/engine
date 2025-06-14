@@ -1,5 +1,6 @@
 from .display import Display
 from .assets import Assets
+from .camera import Camera as SceneCamera
 from .utils import engine,asyncio
 
 from time import perf_counter as time
@@ -369,6 +370,11 @@ class Scene:
         return cls._global_pausetime
 
     @property
+    def camera(self) -> SceneCamera:
+        """Property to get the event camera instance of the current scene."""
+        return self._camera
+
+    @property
     def event(self) -> SceneEvent:
         """Property to get the event handler instance of the current scene."""
         return self._event
@@ -670,7 +676,7 @@ class Scene:
 
         # Create custom Scene events
         self._event = SceneEvent(self)
-        # self.Camera = pyxora.Camera()
+        self._camera = SceneCamera()
 
         self._start_time = time()
         self.__running = True
@@ -714,7 +720,7 @@ class Scene:
 
             elif event.type == pygame.VIDEORESIZE:
                 Display.set_res((event.w, event.h))
-                # self.Camera.dynamic_zoom()
+                Display._dynamic_zoom and self.camera._dynamic_zoom()
             on_event(event)
 
         if self._keys_pressed:
@@ -763,16 +769,16 @@ class Scene:
 
     def __draw_background(self):
         """Clears the screen with the background color."""
-        Display.surf.fill(self._background_color)
+        Display.surface.fill(self._background_color)
 
     def __draw_display(self):
         """Draws the display."""
-        surf = Display.get_stretch_surf() if Display.is_resized() else Display.surf
+        surf = Display.get_stretch_surf() if Display.is_resized() else Display.surface
         Display.window.blit(surf,(0,0))
 
     def __flip(self):
         """Updates the display with the latest frame."""
         self.__update_fps() # I think updating the fps before the flip is the best place?
-        self._dt = Display.clock.tick(self._max_fps) / 1000 # Also take the dt
+        self._dt = round(Display.clock.tick(self._max_fps) / 1000, 3) # Also take the dt
         self.__draw_display()
         pygame.display.flip()

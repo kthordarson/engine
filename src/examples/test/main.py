@@ -17,6 +17,7 @@ async def main():
         title="Test",
         resolution=(500,500),
         fullscreen = False,
+        dynamic_zoom=True,
         resizable = True,
         stretch=True
     )

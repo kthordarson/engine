@@ -46,10 +46,15 @@ class Test(pyxora.Scene):
 
     def _on_keypressed(self,keys):
         speed = 100
-        "a" in keys and self.circle.move((-speed*self.dt,0))
-        "d" in keys and self.circle.move((speed*self.dt,0))
-        "w" in keys and self.circle.move((0,-speed*self.dt))
-        "s" in keys and self.circle.move((0,speed*self.dt))
+        "a" in keys and self.camera.move((-speed*self.dt,0))
+        "d" in keys and self.camera.move((speed*self.dt,0))
+        "w" in keys and self.camera.move((0,-speed*self.dt))
+        "s" in keys and self.camera.move((0,speed*self.dt))
+
+        "right" in keys and self.circle.move((speed*self.dt,0))
+        "left" in keys and self.circle.move((-speed*self.dt,0))
+        "up" in keys and self.circle.move((0,-speed*self.dt))
+        "down" in keys and self.circle.move((0,speed*self.dt))
 
         self.is_custom_event("print_delay") and print(f"[INPUT] keys{keys}")
 
@@ -57,9 +62,9 @@ class Test(pyxora.Scene):
     def _on_paused_keypressed(self,keys):
         print(f"[PAUSED][INPUT] keys{keys}")
 
-    @pyxora.utils.event_listener("print_delay")
     def _on_mousewheel(self,wheel):
-        print(f"[INPUT] wheel:{wheel}")
+        wheel == "up" and self.camera.zoom(2)
+        wheel == "down" and self.camera.zoom(-2)
 
     def _update(self):
         self.print_performance()
@@ -69,11 +74,11 @@ class Test(pyxora.Scene):
         self.print_hello()
 
     def _draw(self):
-        self.display.draw_shape(self.rect,fill=10)
-        self.display.draw_shape(self.circle,fill=5)
-        self.display.draw_shape(self.circle2,fill=5)
-        self.display.draw_image(self.icon)
-        self.display.draw_text(self.text)
+        self.camera.draw_shape(self.rect,fill=10)
+        self.camera.draw_shape(self.circle,fill=5)
+        self.camera.draw_shape(self.circle2,fill=5)
+        self.camera.draw_image(self.icon)
+        self.camera.draw_text(self.text)
 
     @pyxora.utils.event_listener("hello_world")
     def print_hello(self):

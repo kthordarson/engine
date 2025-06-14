@@ -1,7 +1,6 @@
 from .assets import Assets
 
 from typing import Tuple
-from os import path
 
 import pygame
 
@@ -10,14 +9,14 @@ class Display:
 
     window = None
     """The main display window"""
-    surf = None
+    surface = None
     """The main display surface"""
     clock = None
     """The main display clock"""
 
     @classmethod
     def init(cls, title: str, resolution:Tuple[int, int] ,monitor=0, stretch=False,
-             fullscreen=False, resizable=False, vsync=False) -> None:
+             dynamic_zoom=False,fullscreen=False, resizable=False, vsync=False) -> None:
         """
         Initializes the main display window used by all scenes.
 
@@ -25,6 +24,7 @@ class Display:
             title (str): The title of the window.
             resolution (Tuple[int, int]): The resolution of the window (width, height).
             stretch (bool): Whether to stretch the internal surface to fit the screen. Defaults to False.
+            dynamic_zoom (bool): Whether to dynamically zoom the internal surface. Defaults to False.
             fullscreen (bool): Start in fullscreen mode. Defaults to False.
             resizable (bool): Allows the window to be resizable. Defaults to False.
             vsync (bool): Enables vertical sync. Defaults to False.
@@ -38,15 +38,15 @@ class Display:
         cls._resizable = resizable
 
         cls._stretch = stretch
-        # no camera yet
-        # cls._dynamic_zoom = dynamic_zoom
+        cls._dynamic_zoom = dynamic_zoom
 
         cls._new_res = None
+        cls._last_res = None
         cls._icon = None
         cls._index = monitor
 
         cls.clock = pygame.time.Clock()
-        cls.surf = pygame.Surface(resolution)
+        cls.surface = pygame.Surface(resolution)
 
         cls.set_title(title)
 
@@ -146,15 +146,23 @@ class Display:
         Returns:
             pygame.Surface: The scaled surface.
         """
-        return pygame.transform.scale(cls.surf, cls._new_res)
+        return pygame.transform.scale(cls.surface, cls._new_res)
 
     @classmethod
     def toggle_fullscreen(cls) -> None:
         """Toggle fullscreen mode on or off."""
         cls._fullscreen = not cls._fullscreen
-        pygame.display.toggle_fullscreen()
         cls.set_icon(cls._icon) # re-set icon for the new display mode
-        cls.set_res(pygame.display.get_desktop_sizes()[cls._index])
+        # hack to keep the old resolution after toggling fullscreen
+        if cls._fullscreen:
+            cls._last_res = cls._new_res if cls._new_res is not None else cls._res
+            cls._new_res = pygame.display.get_desktop_sizes()[cls._index]
+        else:
+            cls._new_res = cls._last_res
+        cls.set_res(cls._new_res)
+        # second hack to fix the toggle event problem
+        pygame.event.post(pygame.event.Event(pygame.VIDEORESIZE,w=cls._new_res[0], h=cls._new_res[1]))
+        cls.__set_mode()
 
     @classmethod
     def draw_shape(cls, Shape, fill=0) -> None:
@@ -167,7 +175,7 @@ class Display:
         """
 
         # Just calls the abstracted shape.draw method, so we only need one method to draw any future shape :)
-        Shape.draw(cls.surf, fill=fill, scale=1)
+        Shape.draw(cls.surface, fill=fill, scale=1)
 
     @classmethod
     def draw_text(cls, Txt) -> None:
@@ -177,7 +185,7 @@ class Display:
         Args:
             Txt: A text object with a `.draw()` method.
         """
-        Txt.draw(cls.surf, scale=1)
+        Txt.draw(cls.surface, scale=1)
 
 
     @classmethod
@@ -188,7 +196,7 @@ class Display:
         Args:
             Image: An image object with a `.draw()` method.
         """
-        Image.draw(cls.surf, scale=1)
+        Image.draw(cls.surface, scale=1)
 
     # Note: I planned to use the new pygame.Window for more features,
     # but it caused issues with pybgag (web builds), so set_mode for now.
