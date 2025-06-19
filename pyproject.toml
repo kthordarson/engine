@@ -24,6 +24,9 @@ Repository = "https://github.com/ToniDevStuff/pyxora"
 Issues = "https://github.com/ToniDevStuff/pyxora/issues"
 Releases = "https://github.com/ToniDevStuff/pyxora/releases"
 
+[project.scripts]
+pyxora = "pyxora.__main__:main"
+
 [tool.setuptools]
 package-dir = { "pyxora" = "src" }
 packages = ["pyxora"]
