@@ -3,6 +3,8 @@ from time import perf_counter as time
 import pdoc
 import pdoc.web
 
+FAVICON = "https://github.com/pyxora/website/blob/main/data/favicon.png?raw=true"
+
 def local(*args, **kwargs):
     """
     Run a web server to preview documentation for all modules except excluded ones.
@@ -10,7 +12,7 @@ def local(*args, **kwargs):
     x1 = time()
     ip="localhost"
     port=8080
-    pdoc.render.configure(favicon="https://raw.githubusercontent.com/pyxora/website/main/data/favicon.png")
+    pdoc.render.configure(favicon=FAVICON)
     httpd = pdoc.web.DocServer((ip, port), ["pyxora","!pyxora.docs","!pyxora.examples","!pyxora.project","!pyxora.templates"])
     x2 = time()
     url = f"http://{ip}:{httpd.server_port}"

@@ -4,6 +4,8 @@ from time import perf_counter as time
 
 import pdoc
 
+FAVICON = "https://github.com/pyxora/website/blob/main/data/favicon.png?raw=true"
+
 def build(*args, **kwargs):
     """
     Build static HTML documentation for all modules except excluded ones.
@@ -11,7 +13,7 @@ def build(*args, **kwargs):
     """
     x1 = time()
     pdoc.render.configure(
-        favicon="https://raw.githubusercontent.com/pyxora/website/main/data/favicon.png",
+        favicon=FAVICON,
         docformat="google"
     )
     # This will always give you the correct absolute path to a build folder inside the current working directory

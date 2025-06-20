@@ -2,7 +2,7 @@
 name = "pyxora"
 version = "0.3.0"
 authors = [{ name = "ToniDevStuff", email = "antonisdevstuff@gmail.com" }]
-description = "A simple game engine made with Python and pygame-ce"
+description = "A game engine library using pygame, pymunk, and more "
 keywords = ["engine", "game engine", "game development"]
 readme = "README.md"
 dynamic = ["dependencies"]
@@ -29,7 +29,18 @@ pyxora = "pyxora.__main__:main"
 
 [tool.setuptools]
 package-dir = { "pyxora" = "src" }
-packages = ["pyxora"]
+packages = [
+    "pyxora",
+    "pyxora.wrapper",
+    "pyxora.utils",
+    "pyxora.docs",
+    "pyxora.data",
+    "pyxora.examples",
+    "pyxora.project",
+]
+
+[tool.setuptools.package-data]
+pyxora = ["data/**/*"]
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }
