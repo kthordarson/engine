@@ -58,7 +58,7 @@ def local_build(args):
 
     # exec type base in platform
     if sys.platform == "win32":
-        base = "Win32GUI"
+        base = repr("Win32GUI")
         target_name = f"{app_name}.exe"
     else:
         base = None
