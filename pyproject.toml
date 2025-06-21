@@ -1,8 +1,8 @@
 [project]
 name = "pyxora"
-version = "0.3.0"
+version = "0.4.0"
 authors = [{ name = "ToniDevStuff", email = "antonisdevstuff@gmail.com" }]
-description = "A game engine library using pygame, pymunk, and more "
+description = "A game engine library using pygame, pymunk, and more"
 keywords = ["engine", "game engine", "game development"]
 readme = "README.md"
 requires-python = ">=3.11"
@@ -22,11 +22,11 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: pygame",
 ]
 [project.urls]
-Homepage = "https://tonidevstuff.github.io/pyxora"
-Documentation = "https://tonidevstuff.github.io/pyxora/docs"
-Repository = "https://github.com/ToniDevStuff/pyxora"
-Issues = "https://github.com/ToniDevStuff/pyxora/issues"
-Releases = "https://github.com/ToniDevStuff/pyxora/releases"
+Homepage = "https://pyxora.github.io/website"
+Documentation = "https://pyxora.github.io/website/docs"
+Repository = "https://github.com/pyxora/pyxora"
+Issues = "https://github.com/pyxora/pyxora/issues"
+Releases = "https://github.com/pyxora/pyxora/releases"
 
 [project.scripts]
 pyxora = "pyxora.__main__:main"
