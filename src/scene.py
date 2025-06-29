@@ -281,7 +281,7 @@ class SceneEvent:
         now = runtime if state > 0 else pausetime
         return now
 
-    def _update_time(self, event:"Event") -> None:
+    def _update_time(self, event:pygame.event.Event) -> None:
         """Checks if an event should be triggered based on elapsed time.
 
         If the time since the last event trigger exceeds the timer threshold,
