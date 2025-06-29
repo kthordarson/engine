@@ -193,7 +193,7 @@ class SceneEvent:
         Returns:
             SceneEvent: The event that was removed
         """
-        return self.__data.pop(event_name)
+        return self.__data.pop(name)
 
     def post(self,name: str) -> bool:
         """
