@@ -32,7 +32,7 @@ def web_run(args):
     path = get_path(args.name)
     url = "http://localhost:8000/"
     if not valid_project(path):
-        print(f"No project found with name '{name}'")
+        print(f"No project found with name '{args.name}'")
         return
 
     try:
