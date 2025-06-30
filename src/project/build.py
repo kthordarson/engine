@@ -203,7 +203,7 @@ def web_build(args):
     print(f"Build time: {x2 - x1:.2f} seconds")
 
 
-def build(args):
+def build_project(args):
     """Build a project"""
     if args.web:
         web_build(args)
