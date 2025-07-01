@@ -27,7 +27,7 @@ class Test(pyxora.Scene):
 
         self.text = pyxora.Text("This is a text",self.display.get_center(),"white",align="center")
 
-        print(f"Scene Start")
+        print("Scene Start")
 
     def _on_keydown(self,key):
         key == "p" and self.manager.pause()
