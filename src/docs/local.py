@@ -10,8 +10,8 @@ def local(*args, **kwargs):
     Run a web server to preview documentation for all modules except excluded ones.
     """
     x1 = time()
-    ip="localhost"
-    port=8080
+    ip = "localhost"
+    port = 8080
     pdoc.render.configure(favicon=FAVICON)
     httpd = pdoc.web.DocServer((ip, port), ["pyxora","!pyxora.docs","!pyxora.examples","!pyxora.project","!pyxora.templates"])
     x2 = time()
